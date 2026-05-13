@@ -19,9 +19,10 @@ type Request struct {
 	Pago    *Pago   `json:"pago,omitempty"`
 }
 
-// Meta holds version and currency metadata for the invoice generation process.
+// Meta holds version, format, and currency metadata for the invoice generation process.
 type Meta struct {
-	Version string `json:"version_formato"`
+	Format  string `json:"formato"`         // facturae, ubl, cii
+	Version string `json:"version_formato"` // e.g. 3.2.2 for facturae, 2.1 for ubl
 	Moneda  string `json:"moneda"`
 }
 
@@ -68,10 +69,17 @@ type DIR3 struct {
 }
 
 // DefaultMeta fills in default values for empty Meta fields:
-// version defaults to "3.2.2" and currency defaults to "EUR".
+// format defaults to "facturae", version defaults to "3.2.2" and currency defaults to "EUR".
 func DefaultMeta(m Meta) Meta {
+	if m.Format == "" {
+		m.Format = "facturae"
+	}
 	if m.Version == "" {
-		m.Version = "3.2.2"
+		if m.Format == "facturae" {
+			m.Version = "3.2.2"
+		} else if m.Format == "ubl" {
+			m.Version = "2.1"
+		}
 	}
 	if m.Moneda == "" {
 		m.Moneda = "EUR"
