@@ -30,7 +30,7 @@ A Go sidecar service for Spanish electronic invoicing (FacturaE format) with Ver
 
 ```bash
 # Build
-go build -o facturae-engine ./cmd/facturae-engine
+go build -o facturae-engine ./src/cmd/facturae-engine
 
 # Run with mock signing (development)
 ./facturae-engine -socket 127.0.0.1:8080 -schemas ./schemas
@@ -44,4 +44,4 @@ go build -o facturae-engine ./cmd/facturae-engine
 
 ## License
 
-Internal project.
+This project is licensed under the Business Source License 1.1 - see the `LICENSE` file in the root for details.
