@@ -29,6 +29,12 @@ go mod download
 
 ---
 
+## Documentation
+
+Detailed technical documentation, architecture diagrams, and API references can be found in the [docs/](docs/README.md) directory.
+
+---
+
 ## Core Features
 
 -   **JSON to FacturaE XML Conversion:** Accepts invoice data in a structured JSON format.
@@ -50,6 +56,7 @@ facturae-engine/
 ├── Dockerfile         # Multi-stage build for production
 ├── docker-compose.yml # Full stack orchestration
 ├── go.mod             # Go module definition
+├── docs/              # Technical documentation and guides
 └── src/               # Source code
     ├── cmd/           # Application entry points
     ├── internal/      # Private logic (aeat, signing, qr, etc.)
