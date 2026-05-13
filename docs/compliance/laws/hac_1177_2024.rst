@@ -4,35 +4,62 @@ Legal Registry: Spanish Invoicing Laws
 ======================================
 
 This registry contains the raw legal requirements as published in the Official State Gazette (BOE). 
-**Note:** These are sourced articles. For the implementation workflow, see :doc:`../index`.
+**Note:** For the technical implementation details, see the Functional Requirements in the Mastermind.
 
 .. _hac_1177_2024:
 
 Orden HAC/1177/2024 (Verifactu Specifications)
 ----------------------------------------------
 
+*Full text reference:* :doc:`context/BOE-A-2024-22138` (Fetched on 2026-05-13)
+
+.. _hac_1177_art6:
+
+**Art. 6: Integridad e inalterabilidad de los registros de facturación**
+    1. Para cada registro de facturación que genere, el sistema informático deberá calcular su correspondiente huella o «hash».
+    2. El sistema informático deberá ser capaz de comprobar si es correcta la huella o «hash» de cualquier registro.
+    3. El sistema informático deberá firmar electrónicamente todos los registros de facturación que genere.
+
 .. _hac_1177_art7:
 
-**Art. 7: Traceability and Chaining**
-    Each record must include the NIF, Number, Date, and Fingerprint (Hash) of the previous record. 
-    This creates an inalterable chain.
+**Art. 7: Trazabilidad de los registros de facturación (Encadenamiento)**
+    Cada registro de facturación, de alta o de anulación, contendrá el siguiente conjunto de datos referido al registro anterior:
+    1. NIF del obligado.
+    2. Número de serie y número de la factura anterior.
+    3. Fecha de expedición de la factura anterior.
+    4. Los primeros 64 caracteres de la huella o «hash» del registro anterior.
+
+.. _hac_1177_art9:
+
+**Art. 9: Registro de eventos**
+    El sistema debe registrar:
+    - Inicio/Fin de funcionamiento.
+    - Detección de anomalías en integridad/trazabilidad.
+    - Restauración de copias de seguridad.
+    - Exportación de registros.
+    - Registro resumen cada 6 horas de operatividad.
 
 .. _hac_1177_art13:
 
-**Art. 13: Fingerprint (Hash) Generation**
-    Specifies SHA-256 as the algorithm and the exact order of fields for concatenation.
+**Art. 13: Huella o «hash» de los registros de facturación**
+    Datos obligatorios para el hash de ALTA:
+    1. NIF del emisor.
+    2. Número de factura y serie.
+    3. Fecha de expedición.
+    4. Tipo de factura.
+    5. Cuota total.
+    6. Importe total.
+    7. Huella del registro anterior.
+    8. Fecha, hora y huso horario de generación.
 
 .. _hac_1177_art14:
 
-**Art. 14: Electronic Signature**
-    Requires XAdES Enveloped Signature (ETSI EN 319 132).
+**Art. 14: Firma electrónica**
+    - Estándar: ETSI EN 319 132.
+    - Tipo: «XAdES Enveloped Signature».
+    - Certificado: Cualificado en vigor.
 
-.. _crea_y_crece:
+.. _hac_1177_art20:
 
-Ley Crea y Crece (B2B E-Invoicing)
-----------------------------------
-
-.. _crea_crece_art12:
-
-**Art. 12: Interoperability**
-    Requires that the system can receive invoices in FacturaE, UBL, and other formats.
+**Art. 20: Representaciones gráficas (Código QR)**
+    Las facturas deben incluir un código QR con el contenido especificado en el Art. 21.

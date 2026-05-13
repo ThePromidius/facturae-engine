@@ -1,0 +1,27 @@
+SOURCE: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-22138
+TITLE: Orden HAC/1177/2024, de 17 de octubre (Especificaciones técnicas VERI*FACTU)
+DATE_FETCHED: 2026-05-13
+
+---
+
+[The full content of the law was fetched and is summarized below for the Registry. 
+The raw text is being processed into the Legal Mastermind.]
+
+CAPÍTULO III - Generación y contenido de los registros de facturación
+
+Artículo 13. Huella o «hash» de los registros de facturación y de evento.
+1. La información con la que se generará la huella o «hash» se basará en un subconjunto de datos del registro de facturación o de evento, según corresponda:
+   a) Para el registro de facturación de alta:
+      1.º NIF del emisor.
+      2.º Numero de factura y serie.
+      3.º Fecha de expedición de la factura.
+      4.º Tipo de factura.
+      5.º Cuota total.
+      6.º Importe total.
+      7.º Huella del registro de facturación anterior.
+      8.º Fecha, hora y huso horario de generación del registro.
+
+Artículo 14. Firma electrónica de los registros de facturación y de evento.
+La firma electrónica de los registros de facturación y de evento se basará en el estándar ETSI EN 319 132 y utilizará el tipo de firma «XAdES Enveloped Signature».
+
+... [Full text available in docs/compliance/laws/hac_1177_2024.rst] ...
