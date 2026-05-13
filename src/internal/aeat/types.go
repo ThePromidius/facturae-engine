@@ -69,14 +69,23 @@ type Obligado struct {
 
 // Registro represents a single invoice record within a Verifactu submission.
 type Registro struct {
-	IDFactura      IDFactura `xml:"sum:IDFactura"`
-	FechaOperacion string    `xml:"sum:FechaOperacion"`
-	TipoFactura    string    `xml:"sum:TipoFactura"`
-	CuotaTotal     float64   `xml:"sum:CuotaTotal"`
-	ImporteTotal   float64   `xml:"sum:ImporteTotal"`
-	Huella         string    `xml:"sum:Huella"`
-	FechaHoraHito  string    `xml:"sum:FechaHoraHito"`
-	SistemaInformatico Sistema `xml:"sum:SistemaInformatico"`
+	IDFactura        IDFactura         `xml:"sum:IDFactura"`
+	FechaOperacion   string            `xml:"sum:FechaOperacion"`
+	TipoFactura      string            `xml:"sum:TipoFactura"`
+	CuotaTotal       float64           `xml:"sum:CuotaTotal"`
+	ImporteTotal     float64           `xml:"sum:ImporteTotal"`
+	Huella           string            `xml:"sum:Huella"`
+	FechaHoraHito    string            `xml:"sum:FechaHoraHito"`
+	RegistroAnterior *RegistroAnterior `xml:"sum:RegistroAnterior,omitempty"`
+	SistemaInformatico Sistema           `xml:"sum:SistemaInformatico"`
+}
+
+// RegistroAnterior references the preceding record in the chain for traceability.
+type RegistroAnterior struct {
+	IDEmisorFactura IDEmisor `xml:"sum:IDEmisorFactura"`
+	NumSerieFactura string   `xml:"sum:NumSerieFactura"`
+	FechaExpedicion string   `xml:"sum:FechaExpedicionFactura"`
+	Huella          string   `xml:"sum:Huella"`
 }
 
 // IDFactura groups the identifiers that uniquely reference an invoice: the

@@ -27,17 +27,16 @@ type VerifactuParams struct {
 	Fingerprint string
 }
 
-// VerificationURL builds the Spanish tax agency VERIFACTU consultation URL from the given parameters.
-// The URL encodes the issuer CIF, invoice number, series, date, total, and fingerprint hash.
+// VerificationURL builds the Spanish tax agency VERIFACTU consultation URL from the given parameters
+// according to Art. 21 Orden HAC/1177/2024.
 func VerificationURL(p VerifactuParams) string {
-	base := "https://www2.agenciatributaria.gob.es/wlpl/VERIFACTU/ConsultaPublica"
+	// Base URL for Verifactu verification in AEAT Sede Electrónica.
+	base := "https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/qr.html"
 	v := url.Values{}
 	v.Set("nif", p.EmisorCIF)
-	v.Set("num", p.Numero)
-	v.Set("ser", p.Serie)
-	v.Set("fec", p.Fecha)
-	v.Set("tot", fmt.Sprintf("%.2f", p.Total))
-	v.Set("hp", p.Fingerprint)
+	v.Set("numserie", p.Serie+p.Numero)
+	v.Set("fecha", p.Fecha)
+	v.Set("importe", fmt.Sprintf("%.2f", p.Total))
 	return base + "?" + v.Encode()
 }
 

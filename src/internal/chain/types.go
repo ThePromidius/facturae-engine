@@ -22,6 +22,8 @@ type Record struct {
 	InvoiceSeries       string
 	EmisorCIF           string
 	IssueDate           time.Time
+	InvoiceType         string // F1, F2, R1, R2, R3, R4, R5
+	TaxAmount           float64
 	Total               float64
 	PreviousFingerprint string
 	Fingerprint         string
@@ -29,15 +31,25 @@ type Record struct {
 }
 
 // canonicalize serialises a Record into a pipe-delimited string that serves as
-// the input for fingerprint computation.
+// the input for fingerprint computation according to Art. 13 Orden HAC/1177/2024.
 func canonicalize(r Record) string {
-	return fmt.Sprintf("%s|%s|%s|%s|%.2f|%s",
+	// 1. NIF Emisor
+	// 2. NumSerieFactura (concatenado)
+	// 3. FechaExpedicionFactura (YYYY-MM-DD)
+	// 4. TipoFactura
+	// 5. CuotaTotal
+	// 6. ImporteTotal
+	// 7. Huella anterior
+	// 8. FechaHoraHito (ISO 8601 con huso horario)
+	return fmt.Sprintf("%s|%s%s|%s|%s|%.2f|%.2f|%s|%s",
 		r.EmisorCIF,
-		r.InvoiceSeries,
-		r.InvoiceNumber,
+		r.InvoiceSeries, r.InvoiceNumber,
 		r.IssueDate.Format("2006-01-02"),
+		r.InvoiceType,
+		r.TaxAmount,
 		r.Total,
 		r.PreviousFingerprint,
+		r.Timestamp.Format(time.RFC3339),
 	)
 }
 
