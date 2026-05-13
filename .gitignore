@@ -38,5 +38,6 @@ Thumbs.db
 *.txt
 *.md
 !README.md
-!docs/*.md
+!docs/
+!docs/**
 !src/testdata/*.json
