@@ -9,8 +9,8 @@ This section contains the original Markdown documentation. These files are kept 
    api.md
    architecture.md
    workflow.md
-   compliance/hashing_algorithm.md
-   compliance/qr_specifications.md
-   compliance/xml_structure.md
-   guides/deployment.md
-   guides/development.md
+   hashing_algorithm.md
+   qr_specifications.md
+   xml_structure.md
+   guide_deployment.md
+   guide_development.md

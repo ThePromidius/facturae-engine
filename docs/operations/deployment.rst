@@ -59,7 +59,7 @@ The engine supports configuration via CLI flags or environment variables. **Flag
 +----------------+----------------------+----------+------------------------------------------+
 | Flag           | Environment Variable | Required | Description                              |
 +================+======================+==========+==========================================+
-| ``-socket``    | ``ENGINE_SOCKET`     | Yes      | Listen address (e.g. ``0.0.0.0:8080``)   |
+| ``-socket``    | ``ENGINE_SOCKET``    | Yes      | Listen address (e.g. ``0.0.0.0:8080``)   |
 +----------------+----------------------+----------+------------------------------------------+
 | ``-schemas``   | ``ENGINE_SCHEMAS``   | Yes      | Directory for cached XSDs                |
 +----------------+----------------------+----------+------------------------------------------+
