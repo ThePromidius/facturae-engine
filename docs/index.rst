@@ -10,6 +10,7 @@ Welcome to the professional technical manual for the FacturaE Compliance Engine.
    compliance/index
    compliance/checklist
    compliance/laws/hac_1177_2024
+   compliance/aeat_technical_specs
    compliance/hash_spec
    compliance/signature_spec
    auditor/index
