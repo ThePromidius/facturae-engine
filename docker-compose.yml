@@ -11,13 +11,15 @@ services:
     image: facturae-engine:latest
     container_name: facturae-engine
     restart: unless-stopped
-    # Configuración de base de datos para persistencia de la cadena Verifactu
-    command: 
-      - "./facturae-engine"
-      - "-aeat=false"
-      - "-db=postgres"
-      - "-dsn=postgres://facturacion:supersecretpassword@postgres-db:5432/verifactu_db?sslmode=disable"
-      - "-schemas=/app/schemas"
+    # Se recomienda usar un archivo .env para configurar estas variables
+    environment:
+      - ENGINE_SOCKET=${ENGINE_SOCKET:-0.0.0.0:8080}
+      - ENGINE_SCHEMAS=${ENGINE_SCHEMAS:-/app/schemas}
+      - DB_DRIVER=${DB_DRIVER:-postgres}
+      - DB_DSN=${DB_DSN:-postgres://facturacion:supersecretpassword@postgres-db:5432/verifactu_db?sslmode=disable}
+      - CERT_P12_PATH=${CERT_P12_PATH}
+      - CERT_P12_PASS=${CERT_P12_PASS}
+      - AEAT_ENV=${AEAT_ENV}
     # Solo está conectado a la red backend. Inaccesible desde el exterior.
     networks:
       - backend_net
@@ -52,9 +54,9 @@ services:
     networks:
       - backend_net
     environment:
-      POSTGRES_USER: facturacion
-      POSTGRES_PASSWORD: supersecretpassword # Cambiar en producción
-      POSTGRES_DB: verifactu_db
+      POSTGRES_USER: ${POSTGRES_USER:-facturacion}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-supersecretpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-verifactu_db}
     volumes:
       # En tu R730, este volumen mapeará directamente a un dataset de ZFS
       - pg_data:/var/lib/postgresql/data

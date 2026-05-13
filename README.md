@@ -75,9 +75,33 @@ go run ./src/cmd/facturae-engine -socket 127.0.0.1:8080 -schemas ./src/testdata
 
 ### Docker
 
-```bash
-docker-compose up --build
-```
+The easiest way to run the full stack (Engine + DB + Redis) is using Docker Compose.
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Edit `.env` with your configuration (certificate paths, passwords, etc.).
+3. Start the stack:
+   ```bash
+   docker-compose up --build
+   ```
+
+---
+
+## Configuration (Environment Variables)
+
+The engine can be configured using CLI flags or environment variables (flags take precedence).
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
+| `ENGINE_SOCKET` | Listen address | `127.0.0.1:8080` |
+| `ENGINE_SCHEMAS` | Directory for XSD files | `./schemas` |
+| `DB_DRIVER` | Database driver (`memory`, `postgres`, `sqlite`) | `memory` |
+| `DB_DSN` | Database connection string | |
+| `CERT_P12_PATH` | Path to .p12 certificate | |
+| `CERT_P12_PASS` | Password for .p12 | |
+| `AEAT_ENV` | AEAT Environment (`test`, `prod`) | |
 
 ---
 

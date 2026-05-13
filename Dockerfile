@@ -34,5 +34,4 @@ RUN mkdir -p /app/data /app/schemas
 EXPOSE 8080
 
 # Definir el comando de arranque por defecto
-# Por defecto lo arrancamos sin envío a la AEAT (para desarrollo). En prod se sobreescribirá.
-CMD ["./facturae-engine", "-aeat=false", "-schemas=/app/schemas"]
+CMD ["./facturae-engine"]

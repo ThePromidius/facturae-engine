@@ -40,15 +40,15 @@ import (
 // or a mock), optionally configures the AEAT client, selects the chain store
 // backend, and starts the HTTP server.
 func main() {
-	socketPath := flag.String("socket", defaultSocketPath(), "Unix socket path")
-	schemaDir := flag.String("schemas", "./schemas", "Directory for cached XSD files")
-	p12Path := flag.String("p12", "", "Path to PKCS#12 file (.p12/.pfx)")
-	p12Pass := flag.String("p12pass", "", "Password for PKCS#12 file")
-	keyPath := flag.String("key", "", "Path to PEM private key")
-	certPath := flag.String("cert", "", "Path to PEM certificate")
-	aeatEnv := flag.String("aeat", "", "AEAT Environment (test|prod) to enable submission")
-	dbDriver := flag.String("db", "memory", "Database driver (memory|postgres|sqlite)")
-	dbDSN := flag.String("dsn", "", "Database DSN (connection string)")
+	socketPath := flag.String("socket", getEnv("ENGINE_SOCKET", defaultSocketPath()), "Listen address (e.g. 127.0.0.1:8080)")
+	schemaDir := flag.String("schemas", getEnv("ENGINE_SCHEMAS", "./schemas"), "Directory for cached XSD files")
+	p12Path := flag.String("p12", getEnv("CERT_P12_PATH", ""), "Path to PKCS#12 file (.p12/.pfx)")
+	p12Pass := flag.String("p12pass", getEnv("CERT_P12_PASS", ""), "Password for PKCS#12 file")
+	keyPath := flag.String("key", getEnv("CERT_KEY_PATH", ""), "Path to PEM private key")
+	certPath := flag.String("cert", getEnv("CERT_PEM_PATH", ""), "Path to PEM certificate")
+	aeatEnv := flag.String("aeat", getEnv("AEAT_ENV", ""), "AEAT Environment (test|prod) to enable submission")
+	dbDriver := flag.String("db", getEnv("DB_DRIVER", "memory"), "Database driver (memory|postgres|sqlite)")
+	dbDSN := flag.String("dsn", getEnv("DB_DSN", ""), "Database DSN (connection string)")
 	flag.Parse()
 
 	var signer signing.Signer
@@ -149,6 +149,14 @@ func main() {
 // defaultSocketPath returns the default listen address ("127.0.0.1:8080").
 func defaultSocketPath() string {
 	return "127.0.0.1:8080"
+}
+
+// getEnv looks up an environment variable or returns a default value.
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
 }
 
 // printBanner prints the startup banner showing the socket address, signing
