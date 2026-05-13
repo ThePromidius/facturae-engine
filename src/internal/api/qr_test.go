@@ -112,21 +112,11 @@ func TestInvoice_ResponseHasQRURL(t *testing.T) {
 	if !strings.Contains(qrURL, "B12345678") {
 		t.Errorf("QR URL should contain emisor CIF, got: %s", qrURL)
 	}
-}
-
-func TestInvoice_QRURLContainsFingerprint(t *testing.T) {
-	srv := newQRTestServer(t)
-	defer srv.Close()
-
-	body, _ := json.Marshal(validInvoiceBody("QR-002"))
-	resp, _ := http.Post(srv.URL+"/invoice", "application/json", bytes.NewReader(body))
-	defer resp.Body.Close()
-
-	qrURL := resp.Header.Get("X-Verifactu-QR-URL")
-	fp := resp.Header.Get("X-Verifactu-Fingerprint")
-
-	if !strings.Contains(qrURL, fp) {
-		t.Errorf("QR URL should contain the fingerprint\nURL: %s\nFP:  %s", qrURL, fp)
+	if !strings.Contains(qrURL, "numserie=TQR-001") {
+		t.Errorf("QR URL should contain numserie, got: %s", qrURL)
+	}
+	if !strings.Contains(qrURL, "importe=121.00") {
+		t.Errorf("QR URL should contain importe, got: %s", qrURL)
 	}
 }
 
