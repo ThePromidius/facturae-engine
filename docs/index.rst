@@ -1,0 +1,46 @@
+FacturaE Sidecar Documentation
+================================
+
+Welcome to the professional technical manual for the FacturaE Compliance Engine. This system is designed to provide "Magic Box" compliance for the Spanish Verifactu and Crea y Crece laws.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: ⚖️ Compliance Mastermind
+   
+   compliance/index
+   compliance/laws/hac_1177_2024
+   auditor/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 🔌 Integrator Guide
+   
+   integration/api_reference
+   integration/payload_specs
+
+.. toctree::
+   :maxdepth: 2
+   :caption: ⚙️ Operations & Deployment
+   
+   operations/deployment
+   operations/monitoring
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 📦 Technical Reference
+   
+   reference/subsystems/signing
+   reference/subsystems/chaining
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 📚 Legacy Archive
+   
+   legacy/index
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

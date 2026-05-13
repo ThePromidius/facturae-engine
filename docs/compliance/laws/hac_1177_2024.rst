@@ -1,0 +1,38 @@
+.. _legal_registry:
+
+Legal Registry: Spanish Invoicing Laws
+======================================
+
+This registry contains the raw legal requirements as published in the Official State Gazette (BOE). 
+**Note:** These are sourced articles. For the implementation workflow, see :doc:`../index`.
+
+.. _hac_1177_2024:
+
+Orden HAC/1177/2024 (Verifactu Specifications)
+----------------------------------------------
+
+.. _hac_1177_art7:
+
+**Art. 7: Traceability and Chaining**
+    Each record must include the NIF, Number, Date, and Fingerprint (Hash) of the previous record. 
+    This creates an inalterable chain.
+
+.. _hac_1177_art13:
+
+**Art. 13: Fingerprint (Hash) Generation**
+    Specifies SHA-256 as the algorithm and the exact order of fields for concatenation.
+
+.. _hac_1177_art14:
+
+**Art. 14: Electronic Signature**
+    Requires XAdES Enveloped Signature (ETSI EN 319 132).
+
+.. _crea_y_crece:
+
+Ley Crea y Crece (B2B E-Invoicing)
+----------------------------------
+
+.. _crea_crece_art12:
+
+**Art. 12: Interoperability**
+    Requires that the system can receive invoices in FacturaE, UBL, and other formats.

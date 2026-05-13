@@ -32,6 +32,26 @@
     
     Tests cover module logic, API endpoints, and integration scenarios. Use `testdata/` for sample JSON payloads.
 
+## Working with Documentation
+
+The project uses Sphinx with reStructuredText and Markdown support for high-quality technical and legal documentation.
+
+1.  **Initial Setup:** Run the setup script to create a virtual environment and install dependencies.
+    ```powershell
+    .\setup_docs.ps1
+    ```
+
+2.  **Building Docs:** Generate the static HTML documentation.
+    ```powershell
+    .\make_docs.ps1
+    ```
+
+3.  **Live Preview:** Start a local server that refreshes automatically as you edit files (highly recommended for a second monitor experience).
+    ```powershell
+    .\make_docs.ps1 -Serve
+    ```
+    The preview will be available at `http://localhost:8000`.
+
 ---
 
 ## Adding a New Feature

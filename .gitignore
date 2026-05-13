@@ -1,43 +1,11 @@
-# Binaries
-bin/
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Writerside
+Writerside/out/
+Writerside/cfg/
+.idea/shelf/
+.idea/workspace.xml
 
-# Test artifacts
-factura_TEST-*.xml
-qr_TEST-*.png
-test-results/
-coverage.out
-coverage.html
+# Python / Sphinx
+.venv/
+docs/_build/
+.env
 
-# IDEs
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Go
-vendor/
-go.work
-go.work.sum
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Project specific
-/graphify-out/
-/.ai/
-/prueba1/
-/prueba2/
-/facturae-engine/
-/facturae-engine-v2/
-*.txt
-*.md
-!README.md
-!docs/
-!docs/**
-!src/testdata/*.json
