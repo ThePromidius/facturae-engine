@@ -2,9 +2,6 @@
 // Licensed under the Business Source License 1.1.
 // See the LICENSE file in the repository root for full license terms.
 
-// Package chain implements a Verifactu-compliant invoice chain that links
-// consecutive records via SHA-256 fingerprints. Each record stores a
-// cryptographic hash of the previous record, forming a tamper-evident chain.
 package chain
 
 import (
@@ -14,9 +11,7 @@ import (
 	"time"
 )
 
-// Record represents a single entry in the Verifactu invoice chain. It links
-// to the previous record via PreviousFingerprint and carries a Fingerprint
-// computed over its own fields.
+// Record represents a single entry in the Verifactu invoice chain.
 type Record struct {
 	InvoiceNumber       string
 	InvoiceSeries       string
@@ -30,26 +25,31 @@ type Record struct {
 	Timestamp           time.Time
 }
 
-// canonicalize serialises a Record into a pipe-delimited string that serves as
-// the input for fingerprint computation according to Art. 13 Orden HAC/1177/2024.
+// canonicalize serialises a Record into a pipe-delimited string as per Art. 13 Orden HAC/1177/2024.
 func canonicalize(r Record) string {
 	// 1. NIF Emisor
-	// 2. NumSerieFactura (concatenado)
-	// 3. FechaExpedicionFactura (YYYY-MM-DD)
+	// 2. NumSerieFactura (SERIE-NUMBER)
+	// 3. FechaExpedicionFactura (DD-MM-YYYY)
 	// 4. TipoFactura
-	// 5. CuotaTotal
-	// 6. ImporteTotal
-	// 7. Huella anterior
-	// 8. FechaHoraHito (ISO 8601 con huso horario)
-	return fmt.Sprintf("%s|%s%s|%s|%s|%.2f|%.2f|%s|%s",
+	// 5. CuotaTotal (2 decimals)
+	// 6. ImporteTotal (2 decimals)
+	// 7. Huella anterior (Full 64 chars)
+	// 8. FechaHoraHito (ISO 8601 UTC)
+
+	prevFP := r.PreviousFingerprint
+	if len(prevFP) > 64 {
+		prevFP = prevFP[:64]
+	}
+
+	return fmt.Sprintf("%s|%s-%s|%s|%s|%.2f|%.2f|%s|%s",
 		r.EmisorCIF,
 		r.InvoiceSeries, r.InvoiceNumber,
-		r.IssueDate.Format("2006-01-02"),
+		r.IssueDate.Format("02-01-2006"), // DD-MM-YYYY
 		r.InvoiceType,
 		r.TaxAmount,
 		r.Total,
-		r.PreviousFingerprint,
-		r.Timestamp.Format(time.RFC3339),
+		prevFP,
+		r.Timestamp.Format("2006-01-02T15:04:05Z"), // Strict ISO 8601 UTC
 	)
 }
 

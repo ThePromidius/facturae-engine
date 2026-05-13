@@ -7,7 +7,7 @@ import (
 
 func TestCanonicalize(t *testing.T) {
 	issueDate := time.Date(2026, 5, 13, 0, 0, 0, 0, time.UTC)
-	timestamp := time.Date(2026, 5, 13, 10, 30, 0, 0, time.FixedZone("CEST", 2*60*60))
+	timestamp := time.Date(2026, 5, 13, 10, 30, 0, 0, time.UTC)
 
 	record := Record{
 		EmisorCIF:           "A12345678",
@@ -22,8 +22,9 @@ func TestCanonicalize(t *testing.T) {
 	}
 
 	got := canonicalize(record)
-	// Expected order: EmisorCIF|Series+Number|IssueDate|Type|Tax|Total|PrevHash|Timestamp
-	want := "A12345678|SERIE123|2026-05-13|F1|21.00|121.00|PREV-HASH|2026-05-13T10:30:00+02:00"
+	// New expected order based on latest legal mastermind: 
+	// EmisorCIF|Series-Number|DD-MM-YYYY|Type|Tax|Total|PrevHash|ISO8601Z
+	want := "A12345678|SERIE-123|13-05-2026|F1|21.00|121.00|PREV-HASH|2026-05-13T10:30:00Z"
 
 	if got != want {
 		t.Errorf("canonicalize() = %v, want %v", got, want)
@@ -33,7 +34,7 @@ func TestCanonicalize(t *testing.T) {
 func TestFingerprint(t *testing.T) {
 	input := "test-string"
 	// echo -n "test-string" | sha256sum
-	want := "d5558e7090382ba187f55180f680970a27320f269600e0086706f9d7840134f5"
+	want := "ffe65f1d98fafedea3514adc956c8ada5980c6c5d2552fd61f48401aefd5c00e"
 	got := fingerprint(input)
 
 	if got != want {
