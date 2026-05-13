@@ -4,8 +4,8 @@
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/ThePromidius/facturae-engine-v2.git
-    cd facturae-engine-v2
+    git clone https://github.com/ThePromidius/facturae-engine.git
+    cd facturae-engine
     ```
 
 2.  **Set up Go environment:** Ensure Go 1.25+ is installed.
@@ -17,12 +17,12 @@
 
 4.  **Build the application:**
     ```bash
-    go build -o facturae-engine ./cmd/server/main.go
+    go build -o facturae-engine ./src/cmd/facturae-engine
     ```
 
 5.  **Run in development mode (mock signing):**
     ```bash
-    ./facturae-engine -socket 127.0.0.1:8080 -schemas ./schemas
+    ./facturae-engine -socket 127.0.0.1:8080 -schemas ./src/testdata
     ```
 
 6.  **Testing:**
@@ -38,7 +38,7 @@
 
 1.  **Define types:** Add or modify structs in `internal/<module>/`.
 2.  **Write tests:** Create tests in `internal/<module>/<module>_test.go` following existing patterns (e.g., table-driven tests).
-3.  **Wire dependencies:** Update `cmd/server/main.go` to inject new components.
+3.  **Wire dependencies:** Update `src/cmd/facturae-engine/main.go` to inject new components.
 4.  **Expose via API:** Add a handler in `internal/api/handlers.go` and register it in `internal/api/server.go`.
 5.  **Document:** Update `README.md` and relevant module documentation in `docs/modules/`.
 6.  **Run all tests** before committing.
@@ -58,4 +58,4 @@
 
 ## Environment Variables
 
-This service uses CLI flags exclusively, not environment variables, for configuration.
+The service supports configuration via environment variables (ideal for Docker) or CLI flags. Flags take precedence. See the root `README.md` or `.env.example` for a full list of supported variables.

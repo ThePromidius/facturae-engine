@@ -10,41 +10,49 @@
    ```
    The included `Dockerfile` builds a multi-stage Go application.
 
-2. **Running the container:**
+2. **Running with Docker Compose (Recommended):**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   docker-compose up -d
+   ```
+
+3. **Running the container manually:**
    - **Development (Mock Signing):**
      ```bash
-     docker run -p 8080:8080 -v $(pwd)/schemas:/app/schemas facturae-engine:latest \
-       ./facturae-engine -socket 0.0.0.0:8080 -schemas /app/schemas
+     docker run -p 8080:8080 \
+       -e ENGINE_SOCKET=0.0.0.0:8080 \
+       -v $(pwd)/src/testdata:/app/schemas \
+       facturae-engine:latest
      ```
    - **Production (Real Signing + AEAT Submission):**
-     Requires mounting a PKCS#12 certificate (`.p12`) and its password.
+     Requires mounting a PKCS#12 certificate (`.p12`) and setting environment variables.
      ```bash
      docker run -p 8080:8080 \
        -v /path/to/your/cert.p12:/app/cert.p12:ro \
        -v $(pwd)/schemas:/app/schemas \
-       -v /path/to/secrets:/run/secrets \
-       facturae-engine:latest \
-       ./facturae-engine \
-         -socket 0.0.0.0:8080 \
-         -schemas /app/schemas \
-         -p12 /app/cert.p12 \
-         -p12pass $(cat /run/secrets/cert_password) \
-         -aeat prod \
-         -db postgres \
-         -dsn "postgres://user:pass@host:port/db?sslmode=require"
+       -e ENGINE_SOCKET=0.0.0.0:8080 \
+       -e CERT_P12_PATH=/app/cert.p12 \
+       -e CERT_P12_PASS=your_password \
+       -e AEAT_ENV=prod \
+       -e DB_DRIVER=postgres \
+       -e DB_DSN="postgres://user:pass@host:port/db?sslmode=require" \
+       facturae-engine:latest
      ```
 
-### Configuration Flags
+### Configuration (Flags & Environment Variables)
 
-| Flag | Required | Description |
-|---|---|---|
-| `-socket` | Yes | Listen address. `0.0.0.0:8080` for Docker, `127.0.0.1:8080` for sidecar, or Unix socket path. |
-| `-schemas` | Yes | Directory for cached XSDs. Persistent volume recommended. |
-| `-p12` | Conditionally | Path to PKCS#12 cert (or `-key` + `-cert` for PEM). |
-| `-p12pass` | If `-p12` | Password for the PKCS#12 file. |
-| `-aeat` | No | Enable AEAT submission (`test` or `prod`). |
-| `-db` | No | Chain store backend (`memory`, `postgres`, `sqlite`). Default: `memory`. |
-| `-dsn` | If `-db` is not `memory` | Database connection string. |
+The engine can be configured using CLI flags or environment variables. Flags take precedence.
+
+| Flag | Environment Variable | Required | Description |
+|---|---|---|---|
+| `-socket` | `ENGINE_SOCKET` | Yes | Listen address (e.g. `0.0.0.0:8080`) |
+| `-schemas` | `ENGINE_SCHEMAS` | Yes | Directory for cached XSDs |
+| `-p12` | `CERT_P12_PATH` | No | Path to PKCS#12 certificate |
+| `-p12pass` | `CERT_P12_PASS` | No | Password for PKCS#12 |
+| `-aeat` | `AEAT_ENV` | No | AEAT Environment (`test`|`prod`) |
+| `-db` | `DB_DRIVER` | No | Backend (`memory`|`postgres`|`sqlite`) |
+| `-dsn` | `DB_DSN` | No | Database connection string |
 
 ---
 
@@ -52,8 +60,8 @@
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/ThePromidius/facturae-engine-v2.git
-   cd facturae-engine-v2
+   git clone https://github.com/ThePromidius/facturae-engine.git
+   cd facturae-engine
    ```
 
 2. **Set up Go environment:** Ensure Go 1.25+ is installed.
@@ -65,12 +73,12 @@
 
 4. **Build the application:**
    ```bash
-   go build -o facturae-engine ./cmd/server/main.go
+   go build -o facturae-engine ./src/cmd/facturae-engine
    ```
 
 5. **Run in development mode (mock signing):**
    ```bash
-   ./facturae-engine -socket 127.0.0.1:8080 -schemas ./schemas
+   ./facturae-engine -socket 127.0.0.1:8080 -schemas ./src/testdata
    ```
 
 6. **Testing:**
