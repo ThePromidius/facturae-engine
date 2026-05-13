@@ -16,10 +16,18 @@ import (
 	"time"
 )
 
-// KnownVersions maps FacturaE version strings to their remote XSD schema URLs.
+// KnownVersions maps FacturaE and Verifactu version strings to their remote XSD schema URLs.
 var KnownVersions = map[string]string{
+	// FacturaE
 	"3.2.2": "https://www.facturae.gob.es/content/dam/facturae/formato/versiones/Facturaev3_2_2.xml",
 	"3.2.1": "https://www.facturae.gob.es/content/dam/facturae/formato/versiones/Facturaev3_2_1.xml",
+
+	// Verifactu (Tike v1.0 - Test environment)
+	"verifactu-suministro":     "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SuministroLR.xsd",
+	"verifactu-informacion":    "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SuministroInformacion.xsd",
+	"verifactu-respuesta":      "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/RespuestaSuministro.xsd",
+	"verifactu-eventos":        "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/EventosSIF.xsd",
+	"verifactu-resp-anulacion": "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/RespuestaValRegistNoVeriFactu.xsd",
 }
 
 // Manager caches FacturaE XSD schemas on disk and provides access to their

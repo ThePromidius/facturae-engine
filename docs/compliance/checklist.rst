@@ -39,5 +39,14 @@ This checklist serves as the definitive verification guide for the FacturaE Side
     *   *Technical Proof*: :src:`src/internal/legal/compliance_test.go` (``TestRequirement_EventLogging``)
     *   *Legal Basis*: :ref:`hac_1177_art9`
 
+.. _check_schema:
+
+4. Structural Integrity (XSD)
+-----------------------------
+
+*   [ ] **Verifactu Schema Validation**: Output XML must strictly adhere to ``SuministroLR.xsd``.
+    *   *Technical Proof*: :src:`src/internal/schema/verifactu_test.go` (``TestVerifactuSchemaDownload``)
+    *   *Legal Basis*: :ref:`hac_1177_art10`
+
 .. tip::
    Run the command ``go test -v ./src/internal/legal/compliance_test.go`` to automatically verify this checklist.

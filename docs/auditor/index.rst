@@ -16,6 +16,8 @@ This matrix provides a direct map between legal requirements, our functional imp
 +--------------------------+----------------------------+-----------------------------------+------------------------------------------+
 | :ref:`hac_1177_art9`     | Audit Trail                | Implemented                       | :src:`src/internal/legal/events.go`      |
 +--------------------------+----------------------------+-----------------------------------+------------------------------------------+
+| :ref:`hac_1177_art10`    | Structural Integrity       | Implemented (XSD Validation)      | :src:`src/internal/schema/validator.go`  |
++--------------------------+----------------------------+-----------------------------------+------------------------------------------+
 
 .. note::
    The status is updated automatically during our CI/CD pipeline audits.

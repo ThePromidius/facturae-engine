@@ -13,6 +13,7 @@ Welcome to the professional technical manual for the FacturaE Compliance Engine.
    compliance/aeat_technical_specs
    compliance/hash_spec
    compliance/signature_spec
+   compliance/xsd_validation
    auditor/index
 
 .. toctree::
