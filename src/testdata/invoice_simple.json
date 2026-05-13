@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "version_formato": "3.2.2",
+    "moneda": "EUR"
+  },
+  "factura": {
+    "numero": "2024-0001",
+    "serie": "F",
+    "fecha": "2024-05-12T00:00:00Z"
+  },
+  "emisor": {
+    "cif": "B12345678",
+    "nombre": "Mi Empresa S.L.",
+    "direccion": "Calle Falsa 123",
+    "cp": "28001",
+    "ciudad": "Madrid",
+    "provincia": "Madrid",
+    "pais": "ESP"
+  },
+  "receptor": {
+    "cif": "A87654321",
+    "nombre": "Cliente Importante S.A."
+  },
+  "lineas": [
+    {
+      "desc": "Consultoría técnica",
+      "cantidad": 10,
+      "precio_unitario": 100.00,
+      "iva_tipo": 21
+    },
+    {
+      "desc": "Licencia software",
+      "cantidad": 1,
+      "precio_unitario": 500.00,
+      "iva_tipo": 21
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+Business Source License 1.1
+
+Parameters
+
+Licensor:           Victor Gallardo Sanchez
+Software Name:      Facturae Engine
+Change Date:        2029-01-01
+Change License:     Apache License, Version 2.0
+Additional Use Grant:
+                    You may use the Software for any purpose, including internal
+                    commercial purposes, provided that you do not (a) offer the
+                    Software as a managed service, or (b) include the Software
+                    in a commercial product or service that you sell to third
+                    parties. Any such use requires a separate commercial license
+                    from the Licensor.
+
+Terms
+
+1. A "Licensee" is you, an individual or entity exercising rights under this 
+   License.
+
+2. The "Licensor" is the entity specified in the Parameters.
+
+3. "Software" is the software and any associated documentation specified in 
+   the Parameters.
+
+4. The Licensor hereby grants you a non-exclusive, royalty-free, worldwide, 
+   non-transferable license to use, copy, modify, and distribute the 
+   Software, provided that:
+   a. You do not use the Software for any purpose prohibited by the 
+      Additional Use Grant.
+   b. You include this License in all copies and substantial portions of 
+      the Software.
+
+5. On the Change Date, or such earlier date as the Licensor may specify in 
+   writing, this License shall terminate and the Change License shall 
+   automatically apply to the Software.
+
+6. This License does not grant you any rights to any trademarks, service 
+   marks, or logos of the Licensor.
+
+7. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+   IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+   DEALINGS IN THE SOFTWARE.

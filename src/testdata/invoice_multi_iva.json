@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "version_formato": "3.2.2",
+    "moneda": "EUR"
+  },
+  "factura": {
+    "numero": "2024-0002",
+    "serie": "F",
+    "fecha": "2024-05-13T00:00:00Z"
+  },
+  "emisor": {
+    "cif": "B12345678",
+    "nombre": "Mi Empresa S.L.",
+    "direccion": "Calle Falsa 123",
+    "cp": "28001",
+    "ciudad": "Madrid",
+    "provincia": "Madrid",
+    "pais": "ESP"
+  },
+  "receptor": {
+    "cif": "B99887766",
+    "nombre": "Distribuidor Regional S.L."
+  },
+  "lineas": [
+    {
+      "desc": "Productos alimenticios básicos",
+      "cantidad": 100,
+      "precio_unitario": 5.00,
+      "iva_tipo": 4
+    },
+    {
+      "desc": "Servicios de transporte",
+      "cantidad": 3,
+      "precio_unitario": 150.00,
+      "iva_tipo": 10
+    },
+    {
+      "desc": "Servicios de consultoría",
+      "cantidad": 8,
+      "precio_unitario": 120.00,
+      "iva_tipo": 21
+    },
+    {
+      "desc": "Exportación (exento)",
+      "cantidad": 1,
+      "precio_unitario": 2000.00,
+      "iva_tipo": 0
+    }
+  ]
+}
