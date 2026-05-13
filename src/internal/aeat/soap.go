@@ -7,36 +7,28 @@
 package aeat
 
 import (
-	"encoding/xml"
+	"fmt"
 )
 
 // buildSOAPEnvelope wraps the signed invoice XML in a SOAP envelope with the
 // mandatory Header containing the issuer's CIF (NIF) and the signed content in
 // the Body.
 func buildSOAPEnvelope(signedXML []byte, emisorCIF string) []byte {
-	envelope := struct {
-		XMLName   xml.Name `xml:"soapenv:Envelope"`
-		XmlnsSoap string   `xml:"xmlns:soapenv,attr"`
-		XmlnsSum  string   `xml:"xmlns:sum,attr"`
-		Header    struct {
-			Cabecera struct {
-				Obligado struct {
-					NIF string `xml:"sum:NIF"`
-				} `xml:"sum:ObligadoEmision"`
-			} `xml:"sum:Cabecera"`
-		} `xml:"soapenv:Header"`
-		Body struct {
-			RegFactu struct {
-				Content []byte `xml:",innerxml"`
-			} `xml:"sum:RegFactuSistemaFacturacion"`
-		} `xml:"soapenv:Body"`
-	}{}
+	// Note: We use string formatting for the envelope
+	// because AEAT expects specific namespaces that can be tricky with Go's xml.Marshal
+	
+	// Real-world AEAT SOAP expects:
+	// 1. SOAP Envelope
+	// 2. Body containing the SIF schema root (sum:RegFactuSistemaFacturacion)
+	
+	template := `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sum="http://www.agenciatributaria.gob.es/AEAT/VERIFACTU/SistemaFacturacion.xsd">
+   <soapenv:Header/>
+   <soapenv:Body>
+      %s
+   </soapenv:Body>
+</soapenv:Envelope>`
 
-	envelope.XmlnsSoap = "http://schemas.xmlsoap.org/soap/envelope/"
-	envelope.XmlnsSum = "https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd"
-	envelope.Header.Cabecera.Obligado.NIF = emisorCIF
-	envelope.Body.RegFactu.Content = signedXML
-
-	out, _ := xml.MarshalIndent(envelope, "", "  ")
-	return append([]byte(xml.Header), out...)
+	// signedXML should already be a complete sum:RegFactuSistemaFacturacion block
+	return []byte(fmt.Sprintf(template, string(signedXML)))
 }

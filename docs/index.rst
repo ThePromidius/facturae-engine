@@ -21,6 +21,7 @@ Welcome to the professional technical manual for the FacturaE Compliance Engine.
    :caption: 🔌 Integrator Guide
    
    integration/api_reference
+   integration/aeat_submission
    integration/payload_specs
 
 .. toctree::
