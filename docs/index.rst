@@ -8,6 +8,7 @@ Welcome to the professional technical manual for the FacturaE Compliance Engine.
    :caption: ⚖️ Compliance Mastermind
    
    compliance/index
+   compliance/checklist
    compliance/laws/hac_1177_2024
    compliance/hash_spec
    compliance/signature_spec
