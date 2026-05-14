@@ -73,15 +73,41 @@ func ExtractMetadata(data []byte) (*NativeMetadata, error) {
 	return meta, nil
 }
 
-// PatchVerifactu inserts Verifactu specific tags into an existing FacturaE XML.
+// PatchVerifactu inserts Verifactu specific tags into an existing FacturaE or UBL XML.
 func PatchVerifactu(xmlData []byte, fingerprint, prevFingerprint string) []byte {
-	// For FacturaE, we usually want to insert before the signature or end of root
-	huellaBlock := fmt.Sprintf("\n  <Huella>%s</Huella>\n  <HuellaAnterior>%s</HuellaAnterior>\n", fingerprint, prevFingerprint)
-	
-	insertionPoint := "</fe:Facturae>"
-	if strings.Contains(string(xmlData), insertionPoint) {
-		return []byte(strings.Replace(string(xmlData), insertionPoint, huellaBlock+insertionPoint, 1))
+	sData := string(xmlData)
+
+	// 1. FacturaE Patching
+	if strings.Contains(sData, "</fe:Facturae>") {
+		huellaBlock := fmt.Sprintf("\n  <Huella>%s</Huella>\n  <HuellaAnterior>%s</HuellaAnterior>\n", fingerprint, prevFingerprint)
+		return []byte(strings.Replace(sData, "</fe:Facturae>", huellaBlock+"</fe:Facturae>", 1))
 	}
-	
+
+	// 2. UBL Patching (via UBLExtensions)
+	if strings.Contains(sData, "</ubl:Invoice>") || strings.Contains(sData, "</Invoice>") {
+		// UBL Extensions logic: Find existing UBLExtensions or insert new one
+		extBlock := fmt.Sprintf(`
+  <ext:UBLExtensions>
+    <ext:UBLExtension>
+      <ext:ExtensionContent>
+        <Verifactu>
+          <Huella>%s</Huella>
+          <HuellaAnterior>%s</HuellaAnterior>
+        </Verifactu>
+      </ext:ExtensionContent>
+    </ext:UBLExtension>
+  </ext:UBLExtensions>
+`, fingerprint, prevFingerprint)
+
+		// Naive approach: Insert after the root opening tag if no extensions exist
+		if !strings.Contains(sData, "<ext:UBLExtensions>") {
+			// Find first '>' after '<Invoice' or '<ubl:Invoice'
+			idx := strings.Index(sData, ">")
+			if idx != -1 {
+				return []byte(sData[:idx+1] + extBlock + sData[idx+1:])
+			}
+		}
+	}
+
 	return xmlData
 }

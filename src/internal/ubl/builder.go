@@ -15,6 +15,7 @@ const (
 	XmlnsUbl = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
 	XmlnsCac = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
 	XmlnsCbc = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+	XmlnsExt = "urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
 )
 
 // Invoice represents a UBL 2.1 Invoice structure (EN 16931 compliant).
@@ -23,6 +24,8 @@ type Invoice struct {
 	XmlnsUbl          string            `xml:"xmlns:ubl,attr"`
 	XmlnsCac          string            `xml:"xmlns:cac,attr"`
 	XmlnsCbc          string            `xml:"xmlns:cbc,attr"`
+	XmlnsExt          string            `xml:"xmlns:ext,attr"`
+	UBLExtensions     *UBLExtensions    `xml:"ext:UBLExtensions,omitempty"`
 	ID                string            `xml:"cbc:ID"`
 	IssueDate         string            `xml:"cbc:IssueDate"`
 	InvoiceTypeCode   string            `xml:"cbc:InvoiceTypeCode"`
@@ -32,6 +35,23 @@ type Invoice struct {
 	TaxTotal          TaxTotal          `xml:"cac:TaxTotal"`
 	LegalMonetaryTotal LegalMonetaryTotal `xml:"cac:LegalMonetaryTotal"`
 	InvoiceLines      []InvoiceLine     `xml:"cac:InvoiceLine"`
+}
+
+type UBLExtensions struct {
+	Extensions []UBLExtension `xml:"ext:UBLExtension"`
+}
+
+type UBLExtension struct {
+	ExtensionContent ExtensionContent `xml:"ext:ExtensionContent"`
+}
+
+type ExtensionContent struct {
+	Verifactu *VerifactuMetadata `xml:"Verifactu,omitempty"`
+}
+
+type VerifactuMetadata struct {
+	Fingerprint         string `xml:"Huella"`
+	PreviousFingerprint string `xml:"HuellaAnterior"`
 }
 
 type SupplierParty struct {
@@ -100,19 +120,26 @@ type Amount struct {
 // Builder constructs UBL XML from internal invoice requests.
 type Builder struct{}
 
+// Build converts an invoice.Request into a UBL 2.1 XML byte slice.
 func (b *Builder) Build(req invoice.Request) ([]byte, error) {
+	return b.BuildWithCompliance(req, "", "")
+}
+
+// BuildWithCompliance constructs UBL XML including Verifactu metadata in extensions.
+func (b *Builder) BuildWithCompliance(req invoice.Request, fingerprint, prevFingerprint string) ([]byte, error) {
 	var lineExtensionTotal float64
 	var taxTotalAmount float64
 	
 	lines := make([]InvoiceLine, len(req.Lineas))
 	for i, l := range req.Lineas {
-		lineTotal := l.PrecioUnitario * l.QuantityFallback()
+		qty := l.QuantityFallback()
+		lineTotal := l.PrecioUnitario * qty
 		lineExtensionTotal += lineTotal
 		taxTotalAmount += lineTotal * (l.IVATipo / 100.0)
 
 		lines[i] = InvoiceLine{
 			ID:          fmt.Sprintf("%d", i+1),
-			InvoicedQty: Quantity{UnitCode: "C62", Value: fmt.Sprintf("%.2f", l.QuantityFallback())},
+			InvoicedQty: Quantity{UnitCode: "C62", Value: fmt.Sprintf("%.2f", qty)},
 			LineExtension: Amount{CurrencyID: req.Meta.Moneda, Value: fmt.Sprintf("%.2f", round2(lineTotal))},
 			Item: Item{
 				Description: l.Descripcion,
@@ -129,6 +156,7 @@ func (b *Builder) Build(req invoice.Request) ([]byte, error) {
 		XmlnsUbl:         XmlnsUbl,
 		XmlnsCac:         XmlnsCac,
 		XmlnsCbc:         XmlnsCbc,
+		XmlnsExt:         XmlnsExt,
 		ID:               req.Factura.Serie + "-" + req.Factura.Numero,
 		IssueDate:        req.Factura.Fecha.Format("2006-01-02"),
 		InvoiceTypeCode:  "380",
@@ -161,6 +189,21 @@ func (b *Builder) Build(req invoice.Request) ([]byte, error) {
 			PayableAmount:       Amount{CurrencyID: req.Meta.Moneda, Value: fmt.Sprintf("%.2f", round2(totalInclusive))},
 		},
 		InvoiceLines: lines,
+	}
+
+	if fingerprint != "" {
+		inv.UBLExtensions = &UBLExtensions{
+			Extensions: []UBLExtension{
+				{
+					ExtensionContent: ExtensionContent{
+						Verifactu: &VerifactuMetadata{
+							Fingerprint:         fingerprint,
+							PreviousFingerprint: prevFingerprint,
+						},
+					},
+				},
+			},
+		}
 	}
 
 	output, err := xml.MarshalIndent(inv, "", "  ")

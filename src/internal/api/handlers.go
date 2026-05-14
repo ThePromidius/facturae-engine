@@ -14,9 +14,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ThePromidius/facturae-engine/src/internal/chain"
 	"github.com/ThePromidius/facturae-engine/src/internal/facturae"
 	"github.com/ThePromidius/facturae-engine/src/internal/invoice"
+	"github.com/ThePromidius/facturae-engine/src/internal/qr"
+	"github.com/ThePromidius/facturae-engine/src/internal/ubl"
 )
+
 
 
 // handleChain handles GET /chain requests by returning all Verifactu chain
@@ -49,6 +53,7 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 	var issueDate time.Time
 	var total float64
 	var version = "3.2.2" // Default
+	var chainRec *chain.Record
 
 	if strings.Contains(contentType, "application/json") {
 		// --- JSON MODE ---
@@ -68,28 +73,54 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 		req.Meta = invoice.DefaultMeta(req.Meta)
 		version = req.Meta.Version
 		
-		f, err := facturae.Build(req)
-		if err != nil {
-			writeError(w, http.StatusInternalServerError, "Error construyendo FacturaE: "+err.Error())
-			return
+		// Chaining (Need it before building for UBL extension)
+		// We'll calculate emisorCIF, number, series, issueDate, total from JSON
+		emisorCIF = req.Emisor.CIF
+		number = req.Factura.Numero
+		series = req.Factura.Serie
+		issueDate = req.Factura.Fecha
+		// Calculate total for chaining
+		var lineExtTotal float64
+		var taxTotal float64
+		for _, l := range req.Lineas {
+			lineTotal := l.PrecioUnitario * l.QuantityFallback()
+			lineExtTotal += lineTotal
+			taxTotal += lineTotal * (l.IVATipo / 100.0)
 		}
-		
-		xmlBytes, _ := xml.MarshalIndent(f, "", "  ")
-		xmlFull = append([]byte(xml.Header), xmlBytes...)
-		
-		// XSD Pre-flight
-		vXML := s.validator.ValidateFacturaEXML(xmlFull, version)
-		if !vXML.Valid {
-			writeError(w, http.StatusUnprocessableEntity, strings.Join(vXML.Errors, "; "))
-			return
-		}
+		total = lineExtTotal + taxTotal
 
-		inv := f.Invoices.Invoice[0]
-		emisorCIF = f.Parties.SellerParty.TaxIdentification.TaxIdentificationNumber
-		number = inv.InvoiceHeader.InvoiceNumber
-		series = inv.InvoiceHeader.InvoiceSeriesCode
-		issueDate, _ = time.Parse("2006-01-02", inv.InvoiceIssueData.IssueDate)
-		total = inv.InvoiceTotals.InvoiceTotal
+		rec, err := s.chain.Append(number, series, emisorCIF, issueDate, total)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "Error en cadena Verifactu: "+err.Error())
+			return
+		}
+		chainRec = &rec
+
+		if req.Meta.Format == "ubl" {
+			uBuilder := &ubl.Builder{}
+			xmlFull, err = uBuilder.BuildWithCompliance(req, rec.Fingerprint, rec.PreviousFingerprint)
+			if err != nil {
+				writeError(w, http.StatusInternalServerError, "Error construyendo UBL: "+err.Error())
+				return
+			}
+		} else {
+			f, err := facturae.Build(req)
+			if err != nil {
+				writeError(w, http.StatusInternalServerError, "Error construyendo FacturaE: "+err.Error())
+				return
+			}
+			xmlBytes, _ := xml.MarshalIndent(f, "", "  ")
+			xmlFull = append([]byte(xml.Header), xmlBytes...)
+		}
+		
+		// XSD Pre-flight (FacturaE only for now in strict mode)
+		if req.Meta.Format != "ubl" {
+			vXML := s.validator.ValidateFacturaEXML(xmlFull, version)
+			if !vXML.Valid {
+				writeError(w, http.StatusUnprocessableEntity, strings.Join(vXML.Errors, "; "))
+				return
+			}
+		}
 
 	} else if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
 		// --- XML MODE ---
@@ -99,7 +130,8 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
-		// XSD Pre-flight
+		// XSD Pre-flight (Detecting FacturaE version or UBL)
+		// For now we try 3.2.2 as default for native XML
 		vXML := s.validator.ValidateFacturaEXML(rawXML, version)
 		if !vXML.Valid {
 			writeError(w, http.StatusUnprocessableEntity, strings.Join(vXML.Errors, "; "))
@@ -117,23 +149,24 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 		series = meta.Series
 		issueDate = meta.Date
 		total = meta.Total
+
+		// Chaining
+		rec, err := s.chain.Append(number, series, emisorCIF, issueDate, total)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "Error en cadena Verifactu: "+err.Error())
+			return
+		}
+		chainRec = &rec
+		
+		// Patching metadata
+		xmlFull = facturae.PatchVerifactu(xmlFull, rec.Fingerprint, rec.PreviousFingerprint)
+
 	} else {
 		writeError(w, http.StatusUnsupportedMediaType, "Content-Type debe ser application/json o application/xml")
 		return
 	}
 
-	// --- COMMON: Chaining ---
-	rec, err := s.chain.Append(number, series, emisorCIF, issueDate, total)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "Error en cadena Verifactu: "+err.Error())
-		return
-	}
-
-	// --- COMMON: Patching & Signing ---
-	if strings.Contains(contentType, "xml") {
-		xmlFull = facturae.PatchVerifactu(xmlFull, rec.Fingerprint, rec.PreviousFingerprint)
-	}
-	
+	// --- COMMON: Signing ---
 	signed, err := s.signer.Sign(xmlFull)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Error firmando XML: "+err.Error())
@@ -156,8 +189,25 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 
 	// --- RESPONSE ---
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-	w.Header().Set("X-Verifactu-Fingerprint", rec.Fingerprint)
+	w.Header().Set("X-Verifactu-Fingerprint", chainRec.Fingerprint)
 	w.Header().Set("X-Chain-Length", fmt.Sprintf("%d", s.chain.Len()))
+	
+	// QR URL Generation (FacturaE specific)
+	if emisorCIF != "" && number != "" {
+		qrURL := qr.VerificationURL(qr.VerifactuParams{
+			EmisorCIF:   emisorCIF,
+			Numero:      number,
+			Serie:       series,
+			Fecha:       issueDate.Format("2006-01-02"),
+			Total:       total,
+			Fingerprint: chainRec.Fingerprint,
+		})
+		if dataURI, err := qr.GenerateDataURI(qrURL); err == nil {
+			w.Header().Set("X-Verifactu-QR-URL", qrURL)
+			w.Header().Set("X-Verifactu-QR-DataURI", dataURI[:min(len(dataURI), 200)]+"...")
+		}
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Write(signed)
 }
