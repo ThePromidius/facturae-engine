@@ -131,11 +131,11 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if result.IsAccepted() {
-				fmt.Printf("[aeat] Factura %s aceptada | CSV: %s\n",
-					inv.InvoiceHeader.InvoiceNumber, result.CSV)
+				fmt.Printf("[aeat] Factura %s aceptada | CSV: %s | %s\n",
+					inv.InvoiceHeader.InvoiceNumber, result.CSV, result.MapResult())
 			} else {
-				fmt.Printf("[aeat] Factura %s rechazada: %s\n",
-					inv.InvoiceHeader.InvoiceNumber, result.Descripcion)
+				fmt.Printf("[aeat] Factura %s rechazada | Error: %s | Advice: %s\n",
+					inv.InvoiceHeader.InvoiceNumber, result.Estado, result.MapResult())
 			}
 		}()
 	}
