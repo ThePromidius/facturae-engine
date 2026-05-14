@@ -75,11 +75,10 @@ func ExtractMetadata(data []byte) (*NativeMetadata, error) {
 
 // PatchVerifactu inserts Verifactu specific tags into an existing FacturaE XML.
 func PatchVerifactu(xmlData []byte, fingerprint, prevFingerprint string) []byte {
-	// For FacturaE, we usually want to insert before the signature or end of Invoice
-	// This is a simplified string-based patcher for the POC
-	huellaBlock := fmt.Sprintf("\n<Huella>%s</Huella>\n<HuellaAnterior>%s</HuellaAnterior>", fingerprint, prevFingerprint)
+	// For FacturaE, we usually want to insert before the signature or end of root
+	huellaBlock := fmt.Sprintf("\n  <Huella>%s</Huella>\n  <HuellaAnterior>%s</HuellaAnterior>\n", fingerprint, prevFingerprint)
 	
-	insertionPoint := "</Invoice>"
+	insertionPoint := "</fe:Facturae>"
 	if strings.Contains(string(xmlData), insertionPoint) {
 		return []byte(strings.Replace(string(xmlData), insertionPoint, huellaBlock+insertionPoint, 1))
 	}

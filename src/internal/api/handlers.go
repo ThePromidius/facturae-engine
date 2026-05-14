@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,8 +16,8 @@ import (
 
 	"github.com/ThePromidius/facturae-engine/src/internal/facturae"
 	"github.com/ThePromidius/facturae-engine/src/internal/invoice"
-	"github.com/ThePromidius/facturae-engine/src/internal/schema"
 )
+
 
 // handleChain handles GET /chain requests by returning all Verifactu chain
 // records as a JSON array.
@@ -52,16 +51,20 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 	var version = "3.2.2" // Default
 
 	if strings.Contains(contentType, "application/json") {
-		// --- JSON MODE: Transform to FacturaE ---
+		// --- JSON MODE ---
 		var req invoice.Request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			writeError(w, http.StatusBadRequest, "JSON invalido: "+err.Error())
 			return
 		}
-		if err := invoice.Validate(req); err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
+		
+		// Centralized Validation
+		vRes := s.validator.ValidateRequest(req)
+		if !vRes.Valid {
+			writeError(w, http.StatusBadRequest, strings.Join(vRes.Errors, "; "))
 			return
 		}
+
 		req.Meta = invoice.DefaultMeta(req.Meta)
 		version = req.Meta.Version
 		
@@ -70,13 +73,17 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, "Error construyendo FacturaE: "+err.Error())
 			return
 		}
-		if err := facturae.ValidateStruct(f); err != nil {
-			writeError(w, http.StatusUnprocessableEntity, "Validacion estructural: "+err.Error())
-			return
-		}
+		
 		xmlBytes, _ := xml.MarshalIndent(f, "", "  ")
 		xmlFull = append([]byte(xml.Header), xmlBytes...)
 		
+		// XSD Pre-flight
+		vXML := s.validator.ValidateFacturaEXML(xmlFull, version)
+		if !vXML.Valid {
+			writeError(w, http.StatusUnprocessableEntity, strings.Join(vXML.Errors, "; "))
+			return
+		}
+
 		inv := f.Invoices.Invoice[0]
 		emisorCIF = f.Parties.SellerParty.TaxIdentification.TaxIdentificationNumber
 		number = inv.InvoiceHeader.InvoiceNumber
@@ -85,15 +92,23 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 		total = inv.InvoiceTotals.InvoiceTotal
 
 	} else if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
-		// --- XML MODE: Native Pass-through & Patch ---
+		// --- XML MODE ---
 		rawXML, err := io.ReadAll(r.Body)
 		if err != nil {
 			writeError(w, http.StatusBadRequest, "Error leyendo XML: "+err.Error())
 			return
 		}
+		
+		// XSD Pre-flight
+		vXML := s.validator.ValidateFacturaEXML(rawXML, version)
+		if !vXML.Valid {
+			writeError(w, http.StatusUnprocessableEntity, strings.Join(vXML.Errors, "; "))
+			return
+		}
+
 		meta, err := facturae.ExtractMetadata(rawXML)
 		if err != nil {
-			writeError(w, http.StatusUnprocessableEntity, "Error extrayendo metadata de XML nativo: "+err.Error())
+			writeError(w, http.StatusUnprocessableEntity, "Error extrayendo metadata: "+err.Error())
 			return
 		}
 		xmlFull = rawXML
@@ -107,17 +122,6 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- COMMON: XSD Validation ---
-	xsdPath, err := s.schemas.SchemaPath(version)
-	if err == nil {
-		if err := schema.ValidateXML(xmlFull, xsdPath); err != nil {
-			if !errors.Is(err, schema.ErrXmllintMissing) {
-				writeError(w, http.StatusUnprocessableEntity, "XSD Invalido: "+err.Error())
-				return
-			}
-		}
-	}
-
 	// --- COMMON: Chaining ---
 	rec, err := s.chain.Append(number, series, emisorCIF, issueDate, total)
 	if err != nil {
@@ -126,7 +130,6 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// --- COMMON: Patching & Signing ---
-	// (Simplified: In XML mode we patch the string, in JSON mode the XML is already fresh)
 	if strings.Contains(contentType, "xml") {
 		xmlFull = facturae.PatchVerifactu(xmlFull, rec.Fingerprint, rec.PreviousFingerprint)
 	}
@@ -157,4 +160,12 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Chain-Length", fmt.Sprintf("%d", s.chain.Len()))
 	w.WriteHeader(http.StatusOK)
 	w.Write(signed)
+}
+
+// min returns the smaller of a and b.
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

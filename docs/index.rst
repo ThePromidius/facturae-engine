@@ -24,6 +24,7 @@ Welcome to the professional technical manual for the FacturaE Compliance Engine.
    
    integration/api_reference
    integration/aeat_submission
+   integration/validation_service
    integration/error_handling
    integration/payload_specs
 

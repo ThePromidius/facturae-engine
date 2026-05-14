@@ -21,6 +21,7 @@ import (
 	"github.com/ThePromidius/facturae-engine/src/internal/chain"
 	"github.com/ThePromidius/facturae-engine/src/internal/schema"
 	"github.com/ThePromidius/facturae-engine/src/internal/signing"
+	"github.com/ThePromidius/facturae-engine/src/internal/validation"
 )
 
 // Config holds the dependencies and settings required to create a new Server.
@@ -35,12 +36,13 @@ type Config struct {
 // Server is an HTTP server that handles FacturaE invoice processing, chain
 // queries, health checks, and QR generation.
 type Server struct {
-	cfg     Config
-	chain   *chain.Chain
-	schemas *schema.Manager
-	signer  signing.Signer
-	aeat    *aeat.Client
-	http    *http.Server
+	cfg        Config
+	chain      *chain.Chain
+	schemas    *schema.Manager
+	validator  *validation.Service
+	signer     signing.Signer
+	aeat       *aeat.Client
+	http       *http.Server
 }
 
 // New creates a new Server with the given configuration. It initialises the
@@ -64,15 +66,17 @@ func New(cfg Config) (*Server, error) {
 	}
 
 	s := &Server{
-		cfg:     cfg,
-		chain:   chain.NewChain(cs),
-		schemas: sm,
-		signer:  signer,
-		aeat:    cfg.AEATClient,
+		cfg:       cfg,
+		chain:     chain.NewChain(cs),
+		schemas:   sm,
+		validator: validation.NewService(sm),
+		signer:    signer,
+		aeat:      cfg.AEATClient,
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/invoice", s.handleInvoice)
+	mux.HandleFunc("/validate", s.handleValidate)
 	mux.HandleFunc("/health", s.handleHealth)
 	mux.HandleFunc("/dashboard", s.handleDashboard)
 	mux.HandleFunc("/chain", s.handleChain)

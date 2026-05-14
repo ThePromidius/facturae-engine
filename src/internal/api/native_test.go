@@ -20,12 +20,12 @@ func TestServer_HandleInvoice_NativeXML(t *testing.T) {
 
 	// 2. Prepare Native FacturaE XML
 	nativeXML := `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice>
+<fe:Facturae xmlns:fe="http://www.facturae.gob.es/formato/Versiones/Facturaev3_2_2.xml">
 	<TaxIdentificationNumber>B12345678</TaxIdentificationNumber>
 	<InvoiceNumber>001</InvoiceNumber>
 	<IssueDate>2026-05-14</IssueDate>
 	<InvoiceTotal>121.00</InvoiceTotal>
-</Invoice>`
+</fe:Facturae>`
 
 	req := httptest.NewRequest(http.MethodPost, "/invoice", bytes.NewReader([]byte(nativeXML)))
 	req.Header.Set("Content-Type", "application/xml")
