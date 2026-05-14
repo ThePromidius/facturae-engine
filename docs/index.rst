@@ -14,6 +14,7 @@ Welcome to the professional technical manual for the FacturaE Compliance Engine.
    compliance/hash_spec
    compliance/signature_spec
    compliance/xsd_validation
+   compliance/ubl_mapping_spec
    compliance/interop_spec
    auditor/index
 

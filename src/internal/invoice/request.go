@@ -53,6 +53,14 @@ type Linea struct {
 	IVATipo        float64 `json:"iva_tipo"`
 }
 
+// QuantityFallback returns the quantity, defaulting to 1.0 if zero.
+func (l Linea) QuantityFallback() float64 {
+	if l.Cantidad == 0 {
+		return 1.0
+	}
+	return l.Cantidad
+}
+
 // Pago contains payment-related information for the invoice, including the status, date, and method.
 type Pago struct {
 	Estado   string     `json:"estado"`
