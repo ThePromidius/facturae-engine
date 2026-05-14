@@ -176,3 +176,8 @@ func (s *SQLStore) All() ([]Record, error) {
 func (s *SQLStore) Close() error {
 	return s.db.Close()
 }
+
+// CheckHealth verifies if the database connection is alive.
+func (s *SQLStore) CheckHealth() error {
+	return s.db.Ping()
+}

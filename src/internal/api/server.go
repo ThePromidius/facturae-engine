@@ -74,6 +74,7 @@ func New(cfg Config) (*Server, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/invoice", s.handleInvoice)
 	mux.HandleFunc("/health", s.handleHealth)
+	mux.HandleFunc("/dashboard", s.handleDashboard)
 	mux.HandleFunc("/chain", s.handleChain)
 	mux.HandleFunc("/qr", s.handleQR)
 

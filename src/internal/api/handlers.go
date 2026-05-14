@@ -163,46 +163,7 @@ func (s *Server) handleChain(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// handleHealth handles GET /health requests, returning server status, chain
-// length, signer algorithm, and current timestamp.
-func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":       "ok",
-		"chain_length": s.chain.Len(),
-		"signer":       s.signer.Algorithm(),
-		"timestamp":    time.Now().UTC().Format(time.RFC3339),
-	})
-}
-
-// handleQR handles GET /qr requests, generating a PNG QR code from the ?text=
-// query parameter.
-func (s *Server) handleQR(w http.ResponseWriter, r *http.Request) {
-	text := r.URL.Query().Get("text")
-	if text == "" {
-		writeError(w, http.StatusBadRequest, "missing ?text= parameter")
-		return
-	}
-	pngData, err := qr.GeneratePNG(text)
-	if err != nil {
-		writeError(w, http.StatusUnprocessableEntity, "QR generation failed: "+err.Error())
-		return
-	}
-	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Cache-Control", "public, max-age=86400")
-	w.Write(pngData)
-}
-
-// writeError writes a JSON error response with the given HTTP status and
-// message.
-func writeError(w http.ResponseWriter, status int, msg string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]string{"error": msg})
-}
-
-// min returns the smaller of a and b, mirroring the built-in min available in
-// Go 1.21+.
+// min returns the smaller of a and b.
 func min(a, b int) int {
 	if a < b {
 		return a

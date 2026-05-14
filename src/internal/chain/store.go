@@ -31,6 +31,11 @@ func NewChain(s Store) *Chain {
 	return &Chain{store: s}
 }
 
+// Store returns the underlying storage backend.
+func (c *Chain) Store() Store {
+	return c.store
+}
+
 // Append creates a new chain Record linked to the previous record for the same
 // emisorCIF, computes its fingerprint, persists it via the Store, and returns
 // it.
