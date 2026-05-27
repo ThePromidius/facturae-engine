@@ -16,6 +16,9 @@
 //	-schemas  Directory for cached XSD files (default: ./schemas)
 //	-p12      Path to PKCS#12 certificate (.p12/.pfx) for real signing and AEAT TLS
 //	-p12pass  Password for the PKCS#12 file
+//	-dev-p12  Path to a development PKCS#12 file. If the file exists it is
+//	          loaded; otherwise a self-signed 2048-bit RSA certificate is
+//	          generated and saved at this path for reuse.
 //	-key      Path to PEM private key (alternative to -p12)
 //	-cert     Path to PEM certificate (alternative to -p12)
 //	-aeat     AEAT Environment (test|prod) - enables automatic submission
@@ -44,6 +47,8 @@ func main() {
 	schemaDir := flag.String("schemas", getEnv("ENGINE_SCHEMAS", "./schemas"), "Directory for cached XSD files")
 	p12Path := flag.String("p12", getEnv("CERT_P12_PATH", ""), "Path to PKCS#12 file (.p12/.pfx)")
 	p12Pass := flag.String("p12pass", getEnv("CERT_P12_PASS", ""), "Password for PKCS#12 file")
+	devP12 := flag.String("dev-p12", getEnv("DEV_P12_PATH", ""), "Development PKCS#12 path (auto-generated if missing)")
+	devP12Pass := flag.String("dev-p12pass", getEnv("DEV_P12_PASS", "changeit"), "Password for dev PKCS#12 file")
 	keyPath := flag.String("key", getEnv("CERT_KEY_PATH", ""), "Path to PEM private key")
 	certPath := flag.String("cert", getEnv("CERT_PEM_PATH", ""), "Path to PEM certificate")
 	aeatEnv := flag.String("aeat", getEnv("AEAT_ENV", ""), "AEAT Environment (test|prod) to enable submission")
@@ -72,6 +77,19 @@ func main() {
 			}
 			aeatClient = aeat.NewClient(aeat.Environment(*aeatEnv), tlsCert)
 			fmt.Printf("Envio automatico AEAT activado (Entorno: %s, con certificado TLS)\n", *aeatEnv)
+		}
+
+	} else if *devP12 != "" {
+		var err error
+		signer, err = signing.GenerateSelfSignedP12(*devP12, *devP12Pass)
+		if err != nil {
+			log.Fatalf("Dev PKCS#12 setup: %v", err)
+		}
+		fmt.Printf("Firma desarrollo activada (dev-p12: %s): %s\n", *devP12, signer.Algorithm())
+
+		if *aeatEnv != "" {
+			fmt.Printf("AVISO: modo dev-p12 no apto para AEAT real (certificado autofirmado). Solo pruebas.\n")
+			aeatClient = aeat.NewClient(aeat.Environment(*aeatEnv), nil)
 		}
 
 	} else if *keyPath != "" && *certPath != "" {
@@ -176,10 +194,10 @@ func printBanner(socket, algo string) {
 	fmt.Println()
 }
 
-// truncate shortens s to at most max characters, appending "..." if truncated.
-func truncate(s string, max int) string {
-	if len(s) <= max {
+// truncate shortens s to at most limit characters, appending "..." if truncated.
+func truncate(s string, limit int) string {
+	if len(s) <= limit {
 		return s
 	}
-	return s[:max-3] + "..."
+	return s[:limit-3] + "..."
 }

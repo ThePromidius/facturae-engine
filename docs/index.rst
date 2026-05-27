@@ -27,9 +27,17 @@ Welcome to the professional technical manual for the FacturaE Compliance Engine.
 
 .. toctree::
    :maxdepth: 2
+   :caption: 🧪 Development Guide
+   
+   development/index
+   development/testing
+
+.. toctree::
+   :maxdepth: 2
    :caption: ⚙️ Operations & Deployment
    
    operations/deployment
+   operations/certificates
    operations/monitoring
 
 .. toctree::

@@ -9,6 +9,9 @@ package signing
 // Signer defines the interface for XML digital signature providers.
 // Implementations must be able to sign raw XML bytes and report the signing algorithm used.
 type Signer interface {
+	// Sign applies an XML signature to the given document bytes and returns
+	// the signed result.
 	Sign(xmlData []byte) ([]byte, error)
+	// Algorithm returns the name of the signing algorithm used.
 	Algorithm() string
 }

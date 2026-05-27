@@ -180,18 +180,27 @@ func TestIntegration_ChainEndpoint_AfterTwoInvoices(t *testing.T) {
 	post(t, srv, loadTestdata(t, "invoice_simple.json"))
 	post(t, srv, loadTestdata(t, "invoice_multi_iva.json"))
 
-	resp, _ := http.Get(srv.URL + "/chain")
+	resp, err := http.Get(srv.URL + "/chain")
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 
 	var data map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&data)
 
-	records := data["records"].([]interface{})
+	records, ok := data["records"].([]interface{})
+	if !ok {
+		t.Fatalf("expected records array in chain response")
+	}
 	if len(records) != 2 {
 		t.Fatalf("expected 2 records in chain, got %v", data["count"])
 	}
 
-	last := records[1].(map[string]interface{})
+	last, ok := records[1].(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected record to be a map")
+	}
 	if last["InvoiceNumber"] != "2024-0002" {
 		t.Errorf("expected last chain record to be 2024-0002, got %v", last["InvoiceNumber"])
 	}

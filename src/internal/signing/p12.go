@@ -57,6 +57,7 @@ func NewP12SignerFromPEM(keyPEM, certPEM []byte) (*P12Signer, error) {
 	return &P12Signer{privateKey: rsaKey, certificate: cert}, nil
 }
 
+// Algorithm returns the signing algorithm name for identification.
 func (s *P12Signer) Algorithm() string { return "RSA-SHA256 / XAdES-BES (ETSI EN 319 132)" }
 
 // Sign produces an XAdES-BES enveloped signature.

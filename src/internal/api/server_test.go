@@ -207,7 +207,10 @@ func TestInvoice_WrongMethod_Returns405(t *testing.T) {
 	srv := newTestServer(t)
 	defer srv.Close()
 
-	resp, _ := http.Get(srv.URL + "/invoice")
+	resp, err := http.Get(srv.URL + "/invoice")
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusMethodNotAllowed {
@@ -261,7 +264,10 @@ func TestHealth_ResponseJSON(t *testing.T) {
 	srv := newTestServer(t)
 	defer srv.Close()
 
-	resp, _ := http.Get(srv.URL + "/health")
+	resp, err := http.Get(srv.URL + "/health")
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 
 	var data map[string]interface{}
@@ -277,12 +283,16 @@ func TestChain_EmptyOnStart(t *testing.T) {
 	srv := newTestServer(t)
 	defer srv.Close()
 
-	resp, _ := http.Get(srv.URL + "/chain")
+	resp, err := http.Get(srv.URL + "/chain")
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 
 	var data map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&data)
-	if data["count"].(float64) != 0 {
+	count, ok := data["count"].(float64)
+	if !ok || count != 0 {
 		t.Errorf("expected empty chain (count=0) on startup, got %v", data)
 	}
 }
@@ -293,7 +303,10 @@ func TestChain_AfterInvoice_HasRecord(t *testing.T) {
 
 	postInvoice(t, srv, validBody())
 
-	resp, _ := http.Get(srv.URL + "/chain")
+	resp, err := http.Get(srv.URL + "/chain")
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 
 	var data map[string]interface{}
@@ -304,8 +317,8 @@ func TestChain_AfterInvoice_HasRecord(t *testing.T) {
 		t.Fatalf("expected records in chain, got %v", data)
 	}
 
-	r := records[0].(map[string]interface{})
-	if r["Fingerprint"] == "" {
+	r, ok := records[0].(map[string]interface{})
+	if !ok || r["Fingerprint"] == "" {
 		t.Error("chain record should contain a Fingerprint after processing an invoice")
 	}
 }

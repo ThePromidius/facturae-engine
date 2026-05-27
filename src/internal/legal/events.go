@@ -14,11 +14,16 @@ import (
 type EventType string
 
 const (
-	EventStart     EventType = "START"
-	EventStop      EventType = "STOP"
-	EventAnomaly   EventType = "ANOMALY"
-	EventRestore   EventType = "RESTORE"
-	EventExport    EventType = "EXPORT"
+	// EventStart marks the beginning of a system operation.
+	EventStart EventType = "START"
+	// EventStop marks the end of a system operation.
+	EventStop EventType = "STOP"
+	// EventAnomaly signals a detected cryptographic or integrity anomaly.
+	EventAnomaly EventType = "ANOMALY"
+	// EventRestore marks a successful recovery from an anomaly.
+	EventRestore EventType = "RESTORE"
+	// EventExport records a data export event for audit purposes.
+	EventExport EventType = "EXPORT"
 )
 
 // EventRecord represents a mandatory audit log entry.

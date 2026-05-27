@@ -72,15 +72,14 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "Error obteniendo esquema XSD: "+err.Error())
 		return
 	}
-	if err := schema.ValidateXML(xmlFull, xsdPath); err != nil {
-		if errors.Is(err, schema.ErrXmllintMissing) {
-			fmt.Printf("[server] 'xmllint' no encontrado. Saltando validacion XSD estricta para %s\n", req.Meta.Version)
-		} else {
-			writeError(w, http.StatusUnprocessableEntity, err.Error())
-			return
-		}
-	} else {
+	xsdErr := schema.ValidateXML(xmlFull, xsdPath)
+	if xsdErr == nil {
 		fmt.Printf("[server] Validacion XSD estricta superada (%s)\n", req.Meta.Version)
+	} else if errors.Is(xsdErr, schema.ErrXmllintMissing) {
+		fmt.Printf("[server] 'xmllint' no encontrado. Saltando validacion XSD estricta para %s\n", req.Meta.Version)
+	} else {
+		writeError(w, http.StatusUnprocessableEntity, xsdErr.Error())
+		return
 	}
 
 	signed, err := s.signer.Sign(xmlFull)
@@ -201,11 +200,4 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 	json.NewEncoder(w).Encode(map[string]string{"error": msg})
 }
 
-// min returns the smaller of a and b, mirroring the built-in min available in
-// Go 1.21+.
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
+

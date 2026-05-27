@@ -24,6 +24,7 @@ type Invoice struct {
 // Builder constructs UBL XML from internal invoice requests.
 type Builder struct{}
 
+// Build converts an invoice.Request into UBL 2.1 XML bytes.
 func (b *Builder) Build(req invoice.Request) ([]byte, error) {
 	// 1. Map internal request to UBL structure
 	inv := Invoice{

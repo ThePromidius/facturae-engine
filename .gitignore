@@ -9,3 +9,7 @@ Writerside/cfg/
 docs/_build/
 .env
 
+# Runtime artifacts
+audit_trail.log
+**/audit_trail.log
+

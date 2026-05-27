@@ -14,9 +14,14 @@ import (
 // Store is the persistence interface for the invoice chain. Implementations
 // may use in-memory storage, PostgreSQL, or SQLite.
 type Store interface {
+	// Save persists a chain Record.
 	Save(r Record) error
+	// Last returns the most recent Record for the given emisorCIF, or false
+	// if none exist.
 	Last(emisorCIF string) (Record, bool, error)
+	// All returns every Record in insertion order.
 	All() ([]Record, error)
+	// Close releases any resources held by the store.
 	Close() error
 }
 

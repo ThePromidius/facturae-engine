@@ -74,10 +74,13 @@ func TestQREndpoint_ReturnsPNG(t *testing.T) {
 	defer srv.Close()
 
 	text := url.QueryEscape("https://example.com/qr-test")
-	resp, _ := http.Get(srv.URL + "/qr?text=" + text)
+	resp, err := http.Get(srv.URL + "/qr?text=" + text)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 
-	_, err := png.Decode(resp.Body)
+	_, err = png.Decode(resp.Body)
 	if err != nil {
 		t.Errorf("response is not a valid PNG: %v", err)
 	}
@@ -87,7 +90,10 @@ func TestQREndpoint_MissingText_Returns400(t *testing.T) {
 	srv := newQRTestServer(t)
 	defer srv.Close()
 
-	resp, _ := http.Get(srv.URL + "/qr")
+	resp, err := http.Get(srv.URL + "/qr")
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 400 {
 		t.Errorf("expected 400, got %d", resp.StatusCode)
@@ -99,7 +105,10 @@ func TestInvoice_ResponseHasQRURL(t *testing.T) {
 	defer srv.Close()
 
 	body, _ := json.Marshal(validInvoiceBody("QR-001"))
-	resp, _ := http.Post(srv.URL+"/invoice", "application/json", bytes.NewReader(body))
+	resp, err := http.Post(srv.URL+"/invoice", "application/json", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 
 	qrURL := resp.Header.Get("X-Verifactu-QR-URL")
@@ -125,7 +134,10 @@ func TestInvoice_QRDataURIHeader(t *testing.T) {
 	defer srv.Close()
 
 	body, _ := json.Marshal(validInvoiceBody("QR-003"))
-	resp, _ := http.Post(srv.URL+"/invoice", "application/json", bytes.NewReader(body))
+	resp, err := http.Post(srv.URL+"/invoice", "application/json", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 
 	dataURI := resp.Header.Get("X-Verifactu-QR-DataURI")

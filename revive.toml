@@ -1,0 +1,76 @@
+ignoreGeneratedHeader = false
+severity = "warning"
+confidence = 0.8
+
+# ── Documentation ────────────────────────────────────────────────────────────
+
+[rule.exported]
+  arguments = ["checkPublicInterface"]
+
+# ── API / Interface Hygiene ──────────────────────────────────────────────────
+
+[rule.unexported-return]
+# Warn when an exported function returns an unexported type.
+
+[rule.context-as-argument]
+# context.Context must be the first parameter of a function.
+
+[rule.context-keys-type]
+# Keys used with context.WithValue() should be of a custom type, not string/int.
+
+# ── Error Handling ───────────────────────────────────────────────────────────
+
+[rule.error-strings]
+# Error messages should not be capitalised or end with punctuation.
+
+[rule.error-naming]
+# Error variables should be named errFoo or ErrFoo.
+
+[rule.errorf]
+# Prefer fmt.Errorf over errors.New(fmt.Sprintf(...)).
+
+# ── Correctness ──────────────────────────────────────────────────────────────
+
+[rule.range-val-in-closure]
+# Prevents the classic Go closure bug with range variables.
+
+[rule.unchecked-type-assertion]
+# All type assertions must use the comma-ok pattern.
+
+[rule.time-equal]
+# Use time.Equal() instead of == to compare time.Time values.
+
+[rule.constant-logical-expr]
+# Detect always-true / always-false logical expressions.
+
+# ── Style & Cleanliness ──────────────────────────────────────────────────────
+
+[rule.if-return]
+# Redundant if err != nil { return err } can be just return err.
+
+[rule.unnecessary-stmt]
+# No stray statements (e.g. orphaned calls with no effect).
+
+[rule.var-naming]
+  arguments = []
+# Enforce Go naming conventions (mixedCaps, not snake_case).
+
+[rule.early-return]
+# Reduce nesting by returning early.
+
+[rule.modifies-value-receiver]
+# Warn when a value receiver modifies the struct it belongs to.
+
+[rule.receiver-naming]
+# Receiver names should be consistent (1-3 letter abbreviation).
+
+# ── Imports ──────────────────────────────────────────────────────────────────
+
+[rule.import-alias-naming]
+# Import aliases should follow a consistent naming pattern.
+
+[rule.import-shadowing]
+# A variable named the same as an imported package shadows it.
+
+[rule.redefines-builtin-id]
+# Warn when a variable shadows a built-in identifier (len, cap, append, etc.).
