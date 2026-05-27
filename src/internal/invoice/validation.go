@@ -7,8 +7,11 @@ package invoice
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 )
+
+var cifRe = regexp.MustCompile(`^(?:[A-Za-z]\d{7}[A-Za-z0-9]|\d{8}[A-Za-z])$`)
 
 // ValidationError collects multiple validation error messages and implements the error interface.
 type ValidationError struct {
@@ -24,6 +27,16 @@ func (e *ValidationError) add(msg string) {
 }
 
 func (e *ValidationError) any() bool { return len(e.Errors) > 0 }
+
+func validateCIF(cif, label string) error {
+	if len(cif) != 9 {
+		return fmt.Errorf("%s.cif: debe tener 9 caracteres (recibido %d)", label, len(cif))
+	}
+	if !cifRe.MatchString(cif) {
+		return fmt.Errorf("%s.cif: formato invalido (debe ser 1 letra + 7 digitos + 1 digito/letra)", label)
+	}
+	return nil
+}
 
 // Validate checks an invoice.Request for required fields, valid ranges, and structural completeness.
 // It returns nil if the request is valid, or a ValidationError listing all issues found.
@@ -46,6 +59,8 @@ func Validate(req Request) error {
 
 	if strings.TrimSpace(req.Receptor.CIF) == "" {
 		ve.add("receptor.cif: campo obligatorio")
+	} else if err := validateCIF(req.Receptor.CIF, "receptor"); err != nil {
+		ve.add(err.Error())
 	}
 	if strings.TrimSpace(req.Receptor.Nombre) == "" {
 		ve.add("receptor.nombre: campo obligatorio")
@@ -82,6 +97,8 @@ func validatePartyFull(p Party, label string) error {
 	ve := &ValidationError{}
 	if strings.TrimSpace(p.CIF) == "" {
 		ve.add(label + ".cif: campo obligatorio")
+	} else if err := validateCIF(p.CIF, label); err != nil {
+		ve.add(err.Error())
 	}
 	if strings.TrimSpace(p.Nombre) == "" {
 		ve.add(label + ".nombre: campo obligatorio")

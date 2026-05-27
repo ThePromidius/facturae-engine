@@ -9,7 +9,6 @@ package chain
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "modernc.org/sqlite"
@@ -61,6 +60,8 @@ func (s *SQLStore) initSchema() error {
 			emisor_cif TEXT NOT NULL,
 			issue_date DATE NOT NULL,
 			total NUMERIC NOT NULL,
+			invoice_type TEXT NOT NULL DEFAULT '',
+			tax_amount NUMERIC NOT NULL DEFAULT 0.00,
 			prev_fingerprint TEXT,
 			fingerprint TEXT NOT NULL,
 			processed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -76,6 +77,8 @@ func (s *SQLStore) initSchema() error {
 			emisor_cif TEXT NOT NULL,
 			issue_date DATE NOT NULL,
 			total REAL NOT NULL,
+			invoice_type TEXT NOT NULL DEFAULT '',
+			tax_amount REAL NOT NULL DEFAULT 0.00,
 			prev_fingerprint TEXT,
 			fingerprint TEXT NOT NULL,
 			processed_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -85,7 +88,15 @@ func (s *SQLStore) initSchema() error {
 	}
 
 	_, err := s.db.Exec(query)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Migrate existing tables that lack invoice_type / tax_amount
+	s.db.Exec("ALTER TABLE invoice_chain ADD COLUMN invoice_type TEXT NOT NULL DEFAULT ''")
+	s.db.Exec("ALTER TABLE invoice_chain ADD COLUMN tax_amount REAL NOT NULL DEFAULT 0.00")
+
+	return nil
 }
 
 // Save inserts a record into the invoice_chain table using parameterised
@@ -93,21 +104,22 @@ func (s *SQLStore) initSchema() error {
 func (s *SQLStore) Save(r Record) error {
 	query := `
 	INSERT INTO invoice_chain 
-	(invoice_number, invoice_series, emisor_cif, issue_date, total, prev_fingerprint, fingerprint, processed_at)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	(invoice_number, invoice_series, emisor_cif, issue_date, total, invoice_type, tax_amount, prev_fingerprint, fingerprint, processed_at)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
 	if s.driver == "sqlite" {
 		query = `
 		INSERT INTO invoice_chain 
-		(invoice_number, invoice_series, emisor_cif, issue_date, total, prev_fingerprint, fingerprint, processed_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		(invoice_number, invoice_series, emisor_cif, issue_date, total, invoice_type, tax_amount, prev_fingerprint, fingerprint, processed_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`
 	}
 
 	_, err := s.db.Exec(query,
 		r.InvoiceNumber, r.InvoiceSeries, r.EmisorCIF,
 		r.IssueDate.Format("2006-01-02"),
-		r.Total, r.PreviousFingerprint, r.Fingerprint, r.Timestamp,
+		r.Total, r.InvoiceType, r.TaxAmount,
+		r.PreviousFingerprint, r.Fingerprint, r.Timestamp,
 	)
 	return err
 }
@@ -116,7 +128,7 @@ func (s *SQLStore) Save(r Record) error {
 // DESC. Returns false if no record exists for that issuer.
 func (s *SQLStore) Last(emisorCIF string) (Record, bool, error) {
 	query := `
-	SELECT invoice_number, invoice_series, emisor_cif, issue_date, total, prev_fingerprint, fingerprint, processed_at
+	SELECT invoice_number, invoice_series, emisor_cif, issue_date, total, invoice_type, tax_amount, prev_fingerprint, fingerprint, processed_at
 	FROM invoice_chain
 	WHERE emisor_cif = $1
 	ORDER BY id DESC
@@ -124,7 +136,7 @@ func (s *SQLStore) Last(emisorCIF string) (Record, bool, error) {
 	`
 	if s.driver == "sqlite" {
 		query = `
-		SELECT invoice_number, invoice_series, emisor_cif, issue_date, total, prev_fingerprint, fingerprint, processed_at
+		SELECT invoice_number, invoice_series, emisor_cif, issue_date, total, invoice_type, tax_amount, prev_fingerprint, fingerprint, processed_at
 		FROM invoice_chain
 		WHERE emisor_cif = ?
 		ORDER BY id DESC
@@ -133,10 +145,10 @@ func (s *SQLStore) Last(emisorCIF string) (Record, bool, error) {
 	}
 
 	var r Record
-	var issueDateStr string
 	err := s.db.QueryRow(query, emisorCIF).Scan(
 		&r.InvoiceNumber, &r.InvoiceSeries, &r.EmisorCIF,
-		&issueDateStr, &r.Total, &r.PreviousFingerprint, &r.Fingerprint, &r.Timestamp,
+		&r.IssueDate, &r.Total, &r.InvoiceType, &r.TaxAmount,
+		&r.PreviousFingerprint, &r.Fingerprint, &r.Timestamp,
 	)
 
 	if err == sql.ErrNoRows {
@@ -146,13 +158,12 @@ func (s *SQLStore) Last(emisorCIF string) (Record, bool, error) {
 		return Record{}, false, err
 	}
 
-	r.IssueDate, _ = time.Parse("2006-01-02", issueDateStr)
 	return r, true, nil
 }
 
 // All returns all records ordered by id ASC (insertion order).
 func (s *SQLStore) All() ([]Record, error) {
-	query := "SELECT invoice_number, invoice_series, emisor_cif, issue_date, total, prev_fingerprint, fingerprint, processed_at FROM invoice_chain ORDER BY id ASC"
+	query := "SELECT invoice_number, invoice_series, emisor_cif, issue_date, total, invoice_type, tax_amount, prev_fingerprint, fingerprint, processed_at FROM invoice_chain ORDER BY id ASC"
 	rows, err := s.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -162,11 +173,9 @@ func (s *SQLStore) All() ([]Record, error) {
 	var records []Record
 	for rows.Next() {
 		var r Record
-		var issueDateStr string
-		if err := rows.Scan(&r.InvoiceNumber, &r.InvoiceSeries, &r.EmisorCIF, &issueDateStr, &r.Total, &r.PreviousFingerprint, &r.Fingerprint, &r.Timestamp); err != nil {
+		if err := rows.Scan(&r.InvoiceNumber, &r.InvoiceSeries, &r.EmisorCIF, &r.IssueDate, &r.Total, &r.InvoiceType, &r.TaxAmount, &r.PreviousFingerprint, &r.Fingerprint, &r.Timestamp); err != nil {
 			return nil, err
 		}
-		r.IssueDate, _ = time.Parse("2006-01-02", issueDateStr)
 		records = append(records, r)
 	}
 	return records, nil

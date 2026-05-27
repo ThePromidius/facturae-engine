@@ -15,6 +15,26 @@ By default, the service listens on ``127.0.0.1:8080``.
 Endpoints
 ---------
 
+Number Format
+-------------
+
+All numeric fields use **standard JSON number format**:
+
+*   **Decimal separator**: ``.`` (period). Commas (``,``) are **not valid** JSON.
+*   Examples: ``100.00``, ``21.0``, ``0.50``, ``3.1416``
+*   Sent as JSON numbers, **not** quoted strings.
+
++-----------------------+-----------+------------------------------------+
+| Field                 | Type      | Validation                         |
++=======================+===========+====================================+
+| ``cantidad``          | number    | > 0                                |
++-----------------------+-----------+------------------------------------+
+| ``precio_unitario``   | number    | >= 0                               |
++-----------------------+-----------+------------------------------------+
+| ``iva_tipo``          | number    | 0 — 100 (percentage)               |
++-----------------------+-----------+------------------------------------+
+
+
 POST /invoice
 ~~~~~~~~~~~~~
 
@@ -71,6 +91,20 @@ GET /chain
 ~~~~~~~~~~
 
 Retrieves the complete Verifactu chain history. Use this for auditing and compliance verification.
+
+GET /chain/verify
+~~~~~~~~~~~~~~~~~
+
+Validates the integrity of the entire Verifactu chain. Returns ``status: ok``
+if every record's fingerprint is consistent, or ``status: tampered`` if the
+chain has been broken or manipulated.
+
+.. code-block:: json
+
+   {"status": "ok", "chain_length": 5, "message": "Cadena Verifactu intacta: todos los fingerprints son consistentes"}
+
+This endpoint runs ``Chain.Verify()`` — the same check that the engine
+performs automatically before every AEAT submission.
 
 Error Handling
 --------------

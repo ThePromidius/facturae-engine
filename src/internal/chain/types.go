@@ -49,7 +49,7 @@ func canonicalize(r Record) string {
 		r.TaxAmount,
 		r.Total,
 		prevFP,
-		r.Timestamp.Format("2006-01-02T15:04:05Z"), // Strict ISO 8601 UTC
+		r.Timestamp.In(time.UTC).Format("2006-01-02T15:04:05Z"), // Strict ISO 8601 UTC
 	)
 }
 

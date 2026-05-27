@@ -91,6 +91,16 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 	inv := f.Invoices.Invoice[0]
 	issueDate, _ := time.Parse("2006-01-02", inv.InvoiceIssueData.IssueDate)
 	emisorCIF := f.Parties.SellerParty.TaxIdentification.TaxIdentificationNumber
+
+	// Verificar cadena existente antes de modificarla
+	if err := s.chain.Verify(); err != nil {
+		errMsg := fmt.Sprintf("Cadena Verifactu CORRUPTA antes de anadir factura %s: %v",
+			inv.InvoiceHeader.InvoiceNumber, err)
+		fmt.Printf("[server] CRITICO: %s\n", errMsg)
+		writeError(w, http.StatusInternalServerError, errMsg)
+		return
+	}
+
 	rec, err := s.chain.Append(
 		inv.InvoiceHeader.InvoiceNumber,
 		inv.InvoiceHeader.InvoiceSeriesCode,
@@ -103,7 +113,16 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("[server] Factura %s firmada | Huella: %s\n",
+	// Verificar que la escritura fue correcta
+	if err := s.chain.Verify(); err != nil {
+		errMsg := fmt.Sprintf("Cadena Verifactu CORRUPTA tras anadir factura %s: %v",
+			inv.InvoiceHeader.InvoiceNumber, err)
+		fmt.Printf("[server] CRITICO: %s\n", errMsg)
+		writeError(w, http.StatusInternalServerError, errMsg)
+		return
+	}
+
+	fmt.Printf("[server] Factura %s firmada | Huella: %s | Cadena intacta\n",
 		inv.InvoiceHeader.InvoiceNumber, rec.Fingerprint[:16]+"...")
 
 	qrURL := qr.VerificationURL(qr.VerifactuParams{
@@ -121,6 +140,13 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 
 	if s.aeat != nil {
 		go func() {
+			if err := s.chain.Verify(); err != nil {
+				fmt.Printf("[aeat] Cadena CORRUPTA antes de enviar factura %s: %v\n",
+					inv.InvoiceHeader.InvoiceNumber, err)
+				fmt.Printf("[aeat] Envio CANCELADO para %s — la cadena no es segura\n",
+					inv.InvoiceHeader.InvoiceNumber)
+				return
+			}
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 			result, err := s.aeat.Submit(ctx, signed, emisorCIF)
@@ -159,6 +185,34 @@ func (s *Server) handleChain(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"count":   len(records),
 		"records": records,
+	})
+}
+
+// handleChainVerify handles GET /chain/verify by running Chain.Verify() and
+// returning the integrity result.
+func (s *Server) handleChainVerify(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeError(w, http.StatusMethodNotAllowed, "Solo se permite GET")
+		return
+	}
+
+	err := s.chain.Verify()
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "tampered",
+			"error":   err.Error(),
+			"message": "La cadena Verifactu esta corrupta o ha sido manipulada",
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":       "ok",
+		"chain_length": s.chain.Len(),
+		"message":      "Cadena Verifactu intacta: todos los fingerprints son consistentes",
 	})
 }
 

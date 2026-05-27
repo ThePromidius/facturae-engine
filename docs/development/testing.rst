@@ -90,23 +90,23 @@ QR endpoint tests file: :src:`src/internal/api/qr_test.go` (5 tests)
 
 API Integration tests file: :src:`src/internal/api/integration_test.go` (7 tests)
 
-+--------------------------------------------------+----------------------------------------------+
-| Test Function                                    | What it tests                                |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestIntegration_SimpleInvoice``                | Full pipeline: JSON → signed XML             |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestIntegration_SimpleInvoice_TotalsCorrect``  | Totals (1500, 315, 1815) in XML              |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestIntegration_SimpleInvoice_IsValidXML``     | Pre-signature XML is well-formed             |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestIntegration_MultiIVA``                     | Multiple VAT rates in XML                    |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestIntegration_MultiIVA_TotalsCorrect``       | Multi-IVA totals (3910, 266.6, 4176.6)      |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestIntegration_ChainGrowsAcrossRequests``     | Different fingerprints, chain length=2       |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestIntegration_ChainEndpoint_AfterTwoInvoices`` | Chain endpoint has 2 records              |
-+--------------------------------------------------+----------------------------------------------+
++----------------------------------------------------+----------------------------------------------+
+| Test Function                                      | What it tests                                |
++----------------------------------------------------+----------------------------------------------+
+| ``TestIntegration_SimpleInvoice``                  | Full pipeline: JSON → signed XML             |
++----------------------------------------------------+----------------------------------------------+
+| ``TestIntegration_SimpleInvoice_TotalsCorrect``    | Totals (1500, 315, 1815) in XML              |
++----------------------------------------------------+----------------------------------------------+
+| ``TestIntegration_SimpleInvoice_IsValidXML``       | Pre-signature XML is well-formed             |
++----------------------------------------------------+----------------------------------------------+
+| ``TestIntegration_MultiIVA``                       | Multiple VAT rates in XML                    |
++----------------------------------------------------+----------------------------------------------+
+| ``TestIntegration_MultiIVA_TotalsCorrect``         | Multi-IVA totals (3910, 266.6, 4176.6)       |
++----------------------------------------------------+----------------------------------------------+
+| ``TestIntegration_ChainGrowsAcrossRequests``       | Different fingerprints, chain length=2       |
++----------------------------------------------------+----------------------------------------------+
+| ``TestIntegration_ChainEndpoint_AfterTwoInvoices`` | Chain endpoint has 2 records                 |
++----------------------------------------------------+----------------------------------------------+
 
 internal/aeat
 ~~~~~~~~~~~~~
@@ -149,33 +149,33 @@ dev certificate generation.
 Test files: :src:`src/internal/signing/signer_test.go` (11 tests),
 ``pkcs12_test.go`` (3 tests)
 
-+--------------------------------------------------+----------------------------------------------+
-| Test Function                                    | What it tests                                |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestMockSigner_AppendsMockComment``            | Mock adds "MOCK SIGNATURE" comment           |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestMockSigner_ContainsSHA256``                | Mock includes SHA-256 hex                    |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestMockSigner_OutputContainsOriginalXML``     | Original XML preserved                      |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestMockSigner_Algorithm``                     | Algorithm contains "mock"                    |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestP12Signer_SignsAndContainsSignatureElement`` | P12 produces ``<ds:Signature>``            |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestP12Signer_ClosingTagPreserved``            | Signed XML ends with ``</fe:Facturae>``      |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestP12Signer_Algorithm``                      | Algorithm contains "RSA-SHA256"              |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestNewP12SignerFromPEM_InvalidKey``           | Bad key PEM returns error                    |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestNewP12SignerFromPEM_InvalidCert``          | Bad cert PEM returns error                   |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestOpenSSLAvailable_ReturnsBoolean``          | Reports OpenSSL availability                 |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestLoadFromP12File_MissingFile``              | Missing .p12 returns error                   |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestLoadTLSCertFromP12_MissingFile``           | Missing .p12 returns error                   |
-+--------------------------------------------------+----------------------------------------------+
++----------------------------------------------------+----------------------------------------------+
+| Test Function                                      | What it tests                                |
++----------------------------------------------------+----------------------------------------------+
+| ``TestMockSigner_AppendsMockComment``              | Mock adds "MOCK SIGNATURE" comment           |
++----------------------------------------------------+----------------------------------------------+
+| ``TestMockSigner_ContainsSHA256``                  | Mock includes SHA-256 hex                    |
++----------------------------------------------------+----------------------------------------------+
+| ``TestMockSigner_OutputContainsOriginalXML``       | Original XML preserved                       |
++----------------------------------------------------+----------------------------------------------+
+| ``TestMockSigner_Algorithm``                       | Algorithm contains "mock"                    |
++----------------------------------------------------+----------------------------------------------+
+| ``TestP12Signer_SignsAndContainsSignatureElement`` | P12 produces ``<ds:Signature>``              |
++----------------------------------------------------+----------------------------------------------+
+| ``TestP12Signer_ClosingTagPreserved``              | Signed XML ends with ``</fe:Facturae>``      |
++----------------------------------------------------+----------------------------------------------+
+| ``TestP12Signer_Algorithm``                        | Algorithm contains "RSA-SHA256"              |
++----------------------------------------------------+----------------------------------------------+
+| ``TestNewP12SignerFromPEM_InvalidKey``             | Bad key PEM returns error                    |
++----------------------------------------------------+----------------------------------------------+
+| ``TestNewP12SignerFromPEM_InvalidCert``            | Bad cert PEM returns error                   |
++----------------------------------------------------+----------------------------------------------+
+| ``TestOpenSSLAvailable_ReturnsBoolean``            | Reports OpenSSL availability                 |
++----------------------------------------------------+----------------------------------------------+
+| ``TestLoadFromP12File_MissingFile``                | Missing .p12 returns error                   |
++----------------------------------------------------+----------------------------------------------+
+| ``TestLoadTLSCertFromP12_MissingFile``             | Missing .p12 returns error                   |
++----------------------------------------------------+----------------------------------------------+
 
 internal/chain
 ~~~~~~~~~~~~~~
@@ -284,27 +284,27 @@ XSD schema manager: download, cache, validation via ``xmllint``.
 Test files: :src:`src/internal/schema/manager_test.go` (7 tests),
 ``verifactu_test.go`` (2 tests)
 
-+--------------------------------------------------+----------------------------------------------+
-| Test Function                                    | What it tests                                |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestNewManager_CreatesDirectory``              | Manager creates cache dir                    |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestManager_IsCached_FalseWhenEmpty``          | Fresh manager has nothing cached             |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestManager_SchemaPath_DownloadsAndCaches``    | Downloads and caches XSD from known URL      |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestManager_SchemaPath_ReturnsCachedOnSecondCall`` | Second call uses cache                  |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestManager_SchemaPath_UnknownVersion``        | Unknown version returns error                |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestManager_SchemaPath_ServerError``           | Server 503 returns error                     |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestManager_ClearCache``                       | ClearCache removes all cached XSDs           |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestVerifactuSchemaDownload``                  | Downloads verifactu-suministro schema        |
-+--------------------------------------------------+----------------------------------------------+
-| ``TestVerifactuXMLValidation``                   | Attempts xmllint validation (skips if missing)|
-+--------------------------------------------------+----------------------------------------------+
++------------------------------------------------------+------------------------------------------------+
+| Test Function                                        | What it tests                                  |
++------------------------------------------------------+------------------------------------------------+
+| ``TestNewManager_CreatesDirectory``                  | Manager creates cache dir                      |
++------------------------------------------------------+------------------------------------------------+
+| ``TestManager_IsCached_FalseWhenEmpty``              | Fresh manager has nothing cached               |
++------------------------------------------------------+------------------------------------------------+
+| ``TestManager_SchemaPath_DownloadsAndCaches``        | Downloads and caches XSD from known URL        |
++------------------------------------------------------+------------------------------------------------+
+| ``TestManager_SchemaPath_ReturnsCachedOnSecondCall`` | Second call uses cache                         |
++------------------------------------------------------+------------------------------------------------+
+| ``TestManager_SchemaPath_UnknownVersion``            | Unknown version returns error                  |
++------------------------------------------------------+------------------------------------------------+
+| ``TestManager_SchemaPath_ServerError``               | Server 503 returns error                       |
++------------------------------------------------------+------------------------------------------------+
+| ``TestManager_ClearCache``                           | ClearCache removes all cached XSDs             |
++------------------------------------------------------+------------------------------------------------+
+| ``TestVerifactuSchemaDownload``                      | Downloads verifactu-suministro schema          |
++------------------------------------------------------+------------------------------------------------+
+| ``TestVerifactuXMLValidation``                       | Attempts xmllint validation (skips if missing) |
++------------------------------------------------------+------------------------------------------------+
 
 internal/qr
 ~~~~~~~~~~~
@@ -319,18 +319,211 @@ Test file: :src:`src/internal/qr/qr_test.go` (1 test)
 | ``TestVerificationURL``                          | URL params: nif, numserie, fecha, importe    |
 +--------------------------------------------------+----------------------------------------------+
 
-Test Data
----------
+Manual Pipeline Test (CLI)
+--------------------------
 
-Sample invoice JSONs for manual API testing:
+Quick way to test the full pipeline end-to-end:
 
 .. code-block:: bash
 
+   # 1. Build and start the engine (mock mode, no cert needed)
+   go build -o .tmp/facturae-engine ./src/cmd/facturae-engine
+   .tmp/facturae-engine -socket 127.0.0.1:8080 &
+
+   # 2. Wait for startup, then POST an invoice
+   sleep 2
    curl -X POST http://127.0.0.1:8080/invoice \
      -H "Content-Type: application/json" \
      -d @src/testdata/invoice_simple.json
 
-Available fixtures in :src:`src/testdata/`:
+   # 3. Check the chain endpoint
+   curl http://127.0.0.1:8080/chain
+
+   # 4. Health check
+   curl http://127.0.0.1:8080/health
+
+   # 5. Stop
+   kill %1
+
+Available test data in :src:`src/testdata/`:
 
 *   ``invoice_simple.json`` — 2 lines at 21 % IVA (total 1815)
 *   ``invoice_multi_iva.json`` — 4 lines at 4/10/21/0 % (total 4176.60)
+
+Test Scripts
+------------
+
+Pre-built PowerShell scripts for automated manual testing:
+
+.. code-block:: powershell
+
+   # Validate invoice pipeline (XML, signature, headers)
+   .\scripts\test-invoice.ps1
+
+   # Validate chain integrity (fingerprint linking)
+   .\scripts\test-chain.ps1
+
+   # Real submission against AEAT PRE (requires FNMT .p12)
+   .\scripts\test-aeat-pre.ps1 -P12Path "certificado.p12" -P12Pass "contraseña"
+
+Both ``test-invoice`` and ``test-chain`` run with mock signing — no
+certificate needed. They start the engine, run assertions, and clean up.
+
+Chain Verification
+~~~~~~~~~~~~~~~~~
+
+The engine exposes ``GET /chain/verify`` to check the integrity of the
+entire Verifactu chain. It runs ``Chain.Verify()`` which walks every
+record and validates fingerprint continuity:
+
+.. code-block:: bash
+
+   curl http://127.0.0.1:8080/chain/verify
+
+Response (intact chain):
+
+.. code-block:: json
+
+   {"status": "ok", "chain_length": 5, "message": "Cadena Verifactu intacta: todos los fingerprints son consistentes"}
+
+Response (corrupted chain):
+
+.. code-block:: json
+
+   {"status": "tampered", "error": "record 2 (F2024-003): previous fingerprint mismatch (chain broken)", "message": "La cadena Verifactu esta corrupta o ha sido manipulada"}
+
+Pre-Submission Verification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before every AEAT submission, the engine runs ``Chain.Verify()``
+automatically. If the chain is corrupted, the submission is **cancelled**
+and logged — the invoice will never reach AEAT with a broken chain.
+This prevents sending inconsistent data.
+
+See :src:`src/internal/api/handlers.go` — the AEAT goroutine calls
+``s.chain.Verify()`` before ``s.aeat.Submit()``.
+
+Chain Verify Script
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: powershell
+
+   # Verify chain integrity with 2 invoices
+   .\scripts\test-chain-verify.ps1
+
+   # With SQL persistence (chain survives restart)
+   .\scripts\test-chain-verify.ps1 -UseSQL
+
+The script runs 5 tests:
+
+#.  Empty chain reports OK.
+#.  Two invoices POST successfully.
+#.  ``GET /chain/verify`` reports OK with chain_length = 2.
+#.  Manual fingerprint validation (PreviousFingerprint linking).
+#.  With ``-UseSQL``: restarts the server and verifies persistence.
+
+AEAT PRE Test
+~~~~~~~~~~~~~
+
+The ``test-aeat-pre.ps1`` script sends a real invoice to AEAT's test
+environment (``prewww1.aeat.es``) using your FNMT certificate:
+
+.. code-block:: powershell
+
+   .\scripts\test-aeat-pre.ps1 -P12Path ".\micert.p12" -P12Pass "mipass"
+
+It will:
+
+#.  Start the engine with your certificate and ``-aeat test``.
+#.  Send an invoice (the CIF in the JSON must match your cert's NIF —
+    use the ``-CIF`` parameter to override it).
+#.  Wait for AEAT's async response and print the result (CSV, status).
+#.  Show the full server log so you can see the SOAP exchange.
+
+If the invoice's CIF doesn't match your certificate's NIF, AEAT will
+reject it. Override it with:
+
+.. code-block:: powershell
+
+   .\scripts\test-aeat-pre.ps1 -P12Path "cert.p12" -P12Pass "pass" -CIF "12345678Z"
+
+.. warning::
+
+   **AEAT mantiene la cadena por NIF.** Si envías facturas sueltas en
+   PRE, cada envío debe continuar la cadena del NIF que usas. Si pierdes
+   la continuidad (p.ej., re-arrancas el engine sin persistencia SQL),
+   AEAT rechazará la factura porque el ``PreviousFingerprint`` no
+   coincidirá con el último registro que AEAT tiene para ese NIF.
+
+   Para pruebas aisladas usa un NIF de prueba diferente cada vez, o
+   usa persistencia SQL (``-db sqlite``) para mantener la cadena entre
+   sesiones.
+
+AEAT Mock Environment
+---------------------
+
+The engine's **AEAT submission** tests (package ``internal/aeat``) use a
+**mock AEAT server** built with Go's ``httptest`` — they never connect to
+the real AEAT endpoint. The mock:
+
+*   Listens on a random local port (no network access).
+*   Responds with a valid SOAP ``Correcto`` envelope.
+*   Never sends data to ``prewww1.aeat.es`` or ``www1.aeat.es``.
+
+No automated test in this project calls the real AEAT API.
+
+.. warning::
+
+   Real AEAT submission (PRE or PROD) requires a valid FNMT-issued
+   certificate for mTLS. The ``-dev-p12`` flag generates a **self-signed**
+   cert that will **not** work against AEAT.
+   See :doc:`/operations/certificates` for details.
+
+XSD Caching
+-----------
+
+**Sí, hay caché.** Los esquemas XSD se descargan una sola vez y se
+guardan en el directorio ``./schemas/`` (configurable con ``-schemas``
+o ``ENGINE_SCHEMAS``). En peticiones posteriores, el motor usa el
+archivo local sin hacer ninguna llamada HTTP.
+
+Ver :src:`src/internal/schema/manager.go` — ``SchemaPath()`` comprueba
+``os.Stat()`` antes de descargar.
+
+Para limpiar la caché:
+
+.. code-block:: bash
+
+   rm -rf ./schemas/
+
+XSD Validation Against Official Schemas
+---------------------------------------
+
+Every ``POST /invoice`` request validates the generated XML against the
+official FacturaE XSD schema using ``xmllint``. The engine also downloads
+Verifactu XSD schemas from AEAT's own servers (``prewww2.aeat.es``).
+
+Schemas downloaded:
+
+*   ``facturae.gob.es`` → FacturaE 3.2.2, 3.2.1
+*   ``prewww2.aeat.es`` → Verifactu SuministroLR, Informacion, Respuesta,
+    EventosSIF, RespuestaAnulacion
+
+This is the **same structural validation** that AEAT performs on receipt.
+If the XML passes the published XSD, the structure matches AEAT's
+expectations.
+
+Signature Validation
+-------------------
+
+The generated XML is signed with **XAdES-BES** (XAdES Basic Electronic
+Signature), an ETSI standard. The engine validates:
+
+#.  The ``<ds:Signature>`` element is present and well-formed.
+#.  The ``<ds:SignedInfo>`` contains the correct canonicalisation and
+    digest algorithm (SHA-256).
+#.  The ``<QualifyingProperties>`` block complies with the Verifactu
+    XAdES-BES profile (per Art. 14 Orden HAC/1177/2024).
+
+These checks are verified by:
+:src:`src/internal/legal/compliance_test.go` (``TestRequirement_XAdES_BES_Profile``)

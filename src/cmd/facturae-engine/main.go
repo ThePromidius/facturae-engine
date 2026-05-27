@@ -187,9 +187,10 @@ func printBanner(socket, algo string) {
 	fmt.Printf("  Socket  : %s\n", socket)
 	fmt.Printf("  Firma   : %s\n", truncate(algo, 37))
 	fmt.Println("--------------------------------------------")
-	fmt.Println("  POST /invoice   ->  JSON -> XML firmado")
-	fmt.Println("  GET  /health    ->  Estado del engine")
-	fmt.Println("  GET  /chain     ->  Ultimo registro Verifactu")
+	fmt.Println("  POST /invoice        ->  JSON -> XML firmado")
+	fmt.Println("  GET  /health         ->  Estado del engine")
+	fmt.Println("  GET  /chain          ->  Registros de la cadena")
+	fmt.Println("  GET  /chain/verify   ->  Integridad de la cadena")
 	fmt.Println("============================================")
 	fmt.Println()
 }

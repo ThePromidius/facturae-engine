@@ -79,6 +79,48 @@ func TestValidate_NegativeCantidad(t *testing.T) {
 	assertValidationError(t, err, "cantidad")
 }
 
+func TestValidate_ZeroCantidad(t *testing.T) {
+	req := validRequest()
+	req.Lineas[0].Cantidad = 0
+	err := invoice.Validate(req)
+	assertValidationError(t, err, "cantidad")
+}
+
+func TestValidate_NegativePrecioUnitario(t *testing.T) {
+	req := validRequest()
+	req.Lineas[0].PrecioUnitario = -0.01
+	err := invoice.Validate(req)
+	assertValidationError(t, err, "precio_unitario")
+}
+
+func TestValidate_CIFDemasiadoCorto(t *testing.T) {
+	req := validRequest()
+	req.Emisor.CIF = "B12345"
+	err := invoice.Validate(req)
+	assertValidationError(t, err, "9 caracteres")
+}
+
+func TestValidate_CIFDemasiadoLargo(t *testing.T) {
+	req := validRequest()
+	req.Emisor.CIF = "B123456789"
+	err := invoice.Validate(req)
+	assertValidationError(t, err, "9 caracteres")
+}
+
+func TestValidate_CIFSinLetra(t *testing.T) {
+	req := validRequest()
+	req.Emisor.CIF = "123456789"
+	err := invoice.Validate(req)
+	assertValidationError(t, err, "formato invalido")
+}
+
+func TestValidate_ReceptorCIFInvalido(t *testing.T) {
+	req := validRequest()
+	req.Receptor.CIF = "1234"
+	err := invoice.Validate(req)
+	assertValidationError(t, err, "receptor.cif")
+}
+
 func TestValidate_InvalidIVA(t *testing.T) {
 	req := validRequest()
 	req.Lineas[0].IVATipo = 150

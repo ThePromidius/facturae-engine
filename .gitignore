@@ -13,3 +13,6 @@ docs/_build/
 audit_trail.log
 **/audit_trail.log
 
+# Compiled binaries
+bin/
+

@@ -208,3 +208,45 @@ func TestIntegration_ChainEndpoint_AfterTwoInvoices(t *testing.T) {
 		t.Error("second record should have a non-empty PreviousFingerprint")
 	}
 }
+
+func TestIntegration_ChainVerify_AfterTwoInvoices(t *testing.T) {
+	srv := newIntegrationServer(t)
+	defer srv.Close()
+
+	post(t, srv, loadTestdata(t, "invoice_simple.json"))
+	post(t, srv, loadTestdata(t, "invoice_multi_iva.json"))
+
+	resp, err := http.Get(srv.URL + "/chain/verify")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	var data map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&data)
+
+	if data["status"] != "ok" {
+		t.Fatalf("expected chain status 'ok', got %q: %v", data["status"], data["error"])
+	}
+	if data["chain_length"] != 2.0 {
+		t.Errorf("expected chain_length 2, got %v", data["chain_length"])
+	}
+}
+
+func TestIntegration_ChainVerify_EmptyChain(t *testing.T) {
+	srv := newIntegrationServer(t)
+	defer srv.Close()
+
+	resp, err := http.Get(srv.URL + "/chain/verify")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	var data map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&data)
+
+	if data["status"] != "ok" {
+		t.Errorf("expected chain status 'ok' for empty chain, got %q", data["status"])
+	}
+}
