@@ -79,7 +79,7 @@ func TestSQLiteRoundtripPreservesCanonical_Multiple(t *testing.T) {
 	issueDate := time.Date(2026, 5, 13, 0, 0, 0, 0, time.UTC)
 
 	// This approximates what handleInvoice does
-	rec, err := chain.Append("001", "SERIE", "A12345678", issueDate, 121.00)
+	rec, err := chain.Append("001", "SERIE", "A12345678", issueDate, "F1", 21.00, 121.00)
 	if err != nil {
 		t.Fatalf("Append #1: %v", err)
 	}
@@ -90,7 +90,7 @@ func TestSQLiteRoundtripPreservesCanonical_Multiple(t *testing.T) {
 	}
 
 	// Second invoice
-	rec2, err := chain.Append("002", "SERIE", "A12345678", issueDate, 200.00)
+	rec2, err := chain.Append("002", "SERIE", "A12345678", issueDate, "F1", 21.00, 200.00)
 	if err != nil {
 		t.Fatalf("Append #2: %v", err)
 	}

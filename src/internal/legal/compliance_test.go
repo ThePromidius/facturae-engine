@@ -15,13 +15,13 @@ func TestRequirement_HashChaining(t *testing.T) {
 	c := chain.NewChain(mockStore)
 
 	// 1. Append first record
-	r1, _ := c.Append("001", "A", "NIF123", time.Now(), 100.0)
+	r1, _ := c.Append("001", "A", "NIF123", time.Now(), "F1", 21.0, 100.0)
 	if r1.PreviousFingerprint != "" {
 		t.Error("Art 7 Violation: First record must have empty previous fingerprint")
 	}
 
 	// 2. Append second record
-	r2, _ := c.Append("002", "A", "NIF123", time.Now(), 200.0)
+	r2, _ := c.Append("002", "A", "NIF123", time.Now(), "F1", 21.0, 200.0)
 	if r2.PreviousFingerprint != r1.Fingerprint {
 		t.Errorf("Art 7 Violation: Record 2 must link to Record 1. Got %s, want %s", 
 			r2.PreviousFingerprint, r1.Fingerprint)

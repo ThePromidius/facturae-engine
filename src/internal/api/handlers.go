@@ -91,6 +91,8 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 	inv := f.Invoices.Invoice[0]
 	issueDate, _ := time.Parse("2006-01-02", inv.InvoiceIssueData.IssueDate)
 	emisorCIF := f.Parties.SellerParty.TaxIdentification.TaxIdentificationNumber
+	invoiceType := mapInvoiceType(inv.InvoiceHeader.InvoiceDocumentType)
+	taxAmount := inv.InvoiceTotals.TotalTaxOutputs
 
 	// Verificar cadena existente antes de modificarla
 	if err := s.chain.Verify(); err != nil {
@@ -106,6 +108,7 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 		inv.InvoiceHeader.InvoiceSeriesCode,
 		emisorCIF,
 		issueDate,
+		invoiceType, taxAmount,
 		inv.InvoiceTotals.InvoiceTotal,
 	)
 	if err != nil {
@@ -244,6 +247,25 @@ func (s *Server) handleQR(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Cache-Control", "public, max-age=86400")
 	w.Write(pngData)
+}
+
+// mapInvoiceType maps a FacturaE InvoiceDocumentType to a Verifactu-compliant
+// TipoFactura per Orden HAC/1177/2024 Art. 6.1:
+//
+//	FC (Factura Completa) → F1
+//	FA (Factura Simplificada) → F2
+//	AF (Factura Rectificativa) → R1 (por defecto; casos concretos requieren R2-R5)
+func mapInvoiceType(docType string) string {
+	switch docType {
+	case "FC":
+		return "F1"
+	case "FA":
+		return "F2"
+	case "AF":
+		return "R1"
+	default:
+		return "F1"
+	}
 }
 
 // writeError writes a JSON error response with the given HTTP status and

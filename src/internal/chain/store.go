@@ -42,7 +42,7 @@ func NewChain(s Store) *Chain {
 func (c *Chain) Append(
 	invoiceNumber, invoiceSeries, emisorCIF string,
 	issueDate time.Time,
-	total float64,
+	invoiceType string, taxAmount, total float64,
 ) (Record, error) {
 	prev, ok, err := c.store.Last(emisorCIF)
 	if err != nil {
@@ -59,6 +59,8 @@ func (c *Chain) Append(
 		InvoiceSeries:       invoiceSeries,
 		EmisorCIF:           emisorCIF,
 		IssueDate:           issueDate,
+		InvoiceType:         invoiceType,
+		TaxAmount:           taxAmount,
 		Total:               total,
 		PreviousFingerprint: prevFP,
 		Timestamp:           time.Now().UTC(),
@@ -99,28 +101,36 @@ func (c *Chain) All() []Record {
 	return all
 }
 
-// Verify walks the entire chain and checks that every record's
-// PreviousFingerprint matches the preceding record's Fingerprint and that each
-// record's own Fingerprint is consistent with its canonicalised fields. It
-// returns nil if the chain is intact.
+// Verify walks all per-CIF chains and checks that every record's
+// PreviousFingerprint matches the preceding record's Fingerprint within its
+// own CIF chain and that each record's own Fingerprint is consistent with its
+// canonicalised fields. It returns nil if all chains are intact.
 func (c *Chain) Verify() error {
 	all, err := c.store.All()
 	if err != nil {
 		return err
 	}
 
-	prevFP := ""
-	for i, r := range all {
-		if r.PreviousFingerprint != prevFP {
-			return fmt.Errorf("record %d (%s): previous fingerprint mismatch (chain broken)",
-				i, r.InvoiceNumber)
+	// Group by EmisorCIF to verify each chain independently
+	cifChains := make(map[string][]Record)
+	for _, r := range all {
+		cifChains[r.EmisorCIF] = append(cifChains[r.EmisorCIF], r)
+	}
+
+	for cif, records := range cifChains {
+		prevFP := ""
+		for i, r := range records {
+			if r.PreviousFingerprint != prevFP {
+				return fmt.Errorf("CIF %s record %d (%s): previous fingerprint mismatch (chain broken)",
+					cif, i, r.InvoiceNumber)
+			}
+			expected := fingerprint(canonicalize(r))
+			if r.Fingerprint != expected {
+				return fmt.Errorf("CIF %s record %d (%s): fingerprint tampered (expected %s, got %s)",
+					cif, i, r.InvoiceNumber, expected, r.Fingerprint)
+			}
+			prevFP = r.Fingerprint
 		}
-		expected := fingerprint(canonicalize(r))
-		if r.Fingerprint != expected {
-			return fmt.Errorf("record %d (%s): fingerprint tampered (expected %s, got %s)",
-				i, r.InvoiceNumber, expected, r.Fingerprint)
-		}
-		prevFP = r.Fingerprint
 	}
 	return nil
 }
