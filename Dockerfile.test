@@ -7,15 +7,17 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -o /tmp/facturae-engine ./src/cmd/facturae-engine
 
-# ---- Test Stage ----
-FROM alpine:latest AS test
+# ---- Test Stage (includes Go to run go test, plus all tooling) ----
+FROM golang:1.22-alpine AS test
 
-RUN apk add --no-cache openssl libxml2-utils tzdata curl jq sqlite bash coreutils
+RUN apk add --no-cache openssl libxml2-utils tzdata curl jq sqlite postgresql-client bash coreutils
 
 WORKDIR /app
+COPY go.mod go.sum* ./
+RUN go mod download
+COPY . .
 COPY --from=builder /tmp/facturae-engine .
-COPY scripts/test-invoice.sh scripts/test-chain.sh scripts/test-chain-verify.sh /app/scripts/
-COPY src/testdata/ /app/src/testdata/
+RUN chmod +x scripts/*.sh
 
 EXPOSE 9090
 

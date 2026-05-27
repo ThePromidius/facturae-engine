@@ -24,6 +24,20 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: facturae_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d facturae_test"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -42,8 +56,14 @@ jobs:
           sudo apt-get install -y libxml2-utils openssl sqlite3 jq curl
       - name: Download modules
         run: go mod download
-      - name: Run all tests
+      - name: Run all tests (memory + sqlite + postgres)
         run: go test ./... -count=1 -v 2>&1 | tee /tmp/test-output.log
+        env:
+          PGHOST: localhost
+          PGPORT: "5432"
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: facturae_test
       - name: Check for failures
         run: |
           if grep -q "^--- FAIL" /tmp/test-output.log; then
@@ -74,24 +94,15 @@ jobs:
       - name: test-chain-verify.sh
         run: bash scripts/test-chain-verify.sh src/testdata/invoice_simple.json src/testdata/invoice_multi_iva.json 127.0.0.1:9093 /tmp/facturae-engine
 
-  docker:
+  docker-compose:
     runs-on: ubuntu-latest
     needs: [test]
     steps:
       - uses: actions/checkout@v4
-      - name: Build test Docker image
-        run: docker build -f Dockerfile.test -t facturae-engine:test .
-      - name: Run tests in Docker
-        run: >
-          docker run --rm facturae-engine:test
-          /bin/sh -c "
-            go test ./... -count=1 -v 2>&1 | tee /tmp/test.log;
-            if grep -q '^--- FAIL' /tmp/test.log; then exit 1; fi
-          "
-      - name: Run test scripts in Docker
-        run: |
-          docker run --rm -d --name engine-test facturae-engine:test \
-            ./facturae-engine -socket 0.0.0.0:9090
-          sleep 2
-          docker exec engine-test bash scripts/test-invoice.sh || true
-          docker stop engine-test
+      - name: Build images
+        run: docker compose -f docker-compose.test.yml build
+      - name: Run full test stack (postgres + go test + scripts)
+        run: docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from test
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v

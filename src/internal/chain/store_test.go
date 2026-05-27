@@ -28,11 +28,52 @@ func sqliteFactory(name string) (Store, func(), error) {
 	return store, cleanup, nil
 }
 
-func TestStores_AppendAndVerify(t *testing.T) {
-	factories := map[string]storeFactory{
+func postgresFactory(name string) (Store, func(), error) {
+	host := os.Getenv("PGHOST")
+	port := os.Getenv("PGPORT")
+	user := os.Getenv("PGUSER")
+	password := os.Getenv("PGPASSWORD")
+	dbname := os.Getenv("PGDATABASE")
+
+	if port == "" {
+		port = "5432"
+	}
+	if user == "" {
+		user = "postgres"
+	}
+	if password == "" {
+		password = "postgres"
+	}
+	if dbname == "" {
+		dbname = "facturae_test"
+	}
+
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
+	store, err := NewSQLStore("postgres", dsn)
+	if err != nil {
+		return nil, nil, err
+	}
+	cleanup := func() {
+		store.Close()
+	}
+	return store, cleanup, nil
+}
+
+// stores returns the map of available store factories. PostgreSQL is only
+// included when PGHOST is set (e.g. inside Docker or CI).
+func stores() map[string]storeFactory {
+	m := map[string]storeFactory{
 		"memory": memoryFactory,
 		"sqlite": sqliteFactory,
 	}
+	if os.Getenv("PGHOST") != "" {
+		m["postgres"] = postgresFactory
+	}
+	return m
+}
+
+func TestStores_AppendAndVerify(t *testing.T) {
+	factories := stores()
 
 	for name, factory := range factories {
 		t.Run(name, func(t *testing.T) {
@@ -116,10 +157,7 @@ func TestStores_AppendAndVerify(t *testing.T) {
 }
 
 func TestStores_MultipleCIFs(t *testing.T) {
-	factories := map[string]storeFactory{
-		"memory": memoryFactory,
-		"sqlite": sqliteFactory,
-	}
+	factories := stores()
 
 	for name, factory := range factories {
 		t.Run(name, func(t *testing.T) {
@@ -164,10 +202,7 @@ func TestStores_MultipleCIFs(t *testing.T) {
 }
 
 func TestStores_CanonicalFieldsRoundTrip(t *testing.T) {
-	factories := map[string]storeFactory{
-		"memory": memoryFactory,
-		"sqlite": sqliteFactory,
-	}
+	factories := stores()
 
 	for name, factory := range factories {
 		t.Run(name, func(t *testing.T) {
@@ -226,10 +261,7 @@ func TestStores_CanonicalFieldsRoundTrip(t *testing.T) {
 }
 
 func TestStores_EmptyChain(t *testing.T) {
-	factories := map[string]storeFactory{
-		"memory": memoryFactory,
-		"sqlite": sqliteFactory,
-	}
+	factories := stores()
 
 	for name, factory := range factories {
 		t.Run(name, func(t *testing.T) {

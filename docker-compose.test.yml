@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: facturae-test-pg
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: facturae_test
+    ports:
+      - "15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d facturae_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+    tmpfs: /var/lib/postgresql/data
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: facturae-test-runner
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres-db
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: facturae_test
+      ENGINE_SCHEMAS: /tmp/schemas
+    command: >
+      sh -c "
+        echo '=== Go tests (all stores: memory + sqlite + postgres) ===' &&
+        go test ./... -count=1 -v 2>&1 | tee /tmp/test.log &&
+        echo '' &&
+        if grep -q '^--- FAIL' /tmp/test.log; then
+          echo 'FAILURES DETECTED';
+          grep '^--- FAIL' /tmp/test.log;
+          exit 1;
+        fi &&
+        echo 'ALL TESTS PASSED' &&
+        echo '' &&
+        echo '=== Script tests ===' &&
+        /app/scripts/run-all.sh 2>&1
+      "
+
+  test-scripts:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: facturae-test-scripts
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres-db
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: facturae_test
+    command: >
+      sh -c "
+        /app/scripts/run-all.sh 2>&1
+      "
