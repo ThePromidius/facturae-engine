@@ -53,6 +53,8 @@ func validBody() invoice.Request {
 		},
 		Receptor: invoice.Party{
 			CIF: "A87654321", Nombre: "Cliente Test S.A.",
+			Direccion: "Av. Cliente 456", CP: "08001",
+			Ciudad: "Barcelona", Provincia: "Barcelona", Pais: "ESP",
 		},
 		Lineas: []invoice.Linea{
 			{Descripcion: "Servicio A", Cantidad: 5, PrecioUnitario: 100, IVATipo: 21},

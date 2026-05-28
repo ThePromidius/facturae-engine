@@ -19,7 +19,12 @@
   },
   "receptor": {
     "cif": "A87654321",
-    "nombre": "Cliente Importante S.A."
+    "nombre": "Cliente Importante S.A.",
+    "direccion": "Av. del Cliente 456",
+    "cp": "08001",
+    "ciudad": "Barcelona",
+    "provincia": "Barcelona",
+    "pais": "ESP"
   },
   "lineas": [
     {

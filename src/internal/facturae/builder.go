@@ -76,8 +76,7 @@ func Build(req invoice.Request) (*FacturaE, error) {
 	return f, nil
 }
 
-// buildParty converts an invoice.Party into a facturae.Party, optionally including
-// the registration address when withAddress is true and the address data is non-empty.
+// buildParty converts an invoice.Party into a facturae.Party.
 func buildParty(p invoice.Party, withAddress bool) Party {
 	party := Party{
 		TaxIdentification: TaxIdentification{
@@ -90,13 +89,21 @@ func buildParty(p invoice.Party, withAddress bool) Party {
 		},
 	}
 
-	if withAddress && p.Direccion != "" {
-		party.LegalEntity.RegistrationData = &Address{
+	if p.Direccion != "" {
+		party.LegalEntity.AddressInSpain = &Address{
 			Address:     p.Direccion,
 			PostCode:    p.CP,
 			Town:        p.Ciudad,
 			Province:    p.Provincia,
 			CountryCode: p.Pais,
+		}
+	} else {
+		party.LegalEntity.AddressInSpain = &Address{
+			Address:     p.Nombre,
+			PostCode:    "00000",
+			Town:        "SIN DOMICILIO",
+			Province:    "SIN DOMICILIO",
+			CountryCode: "ES",
 		}
 	}
 

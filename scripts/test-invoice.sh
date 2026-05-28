@@ -79,9 +79,8 @@ assert_status "$status" "200" "Status 200"
 
 echo "$response" | grep -qi "Content-Type:.*xml" && pass=$((pass+1)) && echo "  [PASS] Content-Type = application/xml" || { fail=$((fail+1)); echo "  [FAIL] Content-Type = application/xml"; }
 
-xml_body=$(echo "$response" | sed -n '/^<?xml/,/^</p' | head -c 500)
-assert "echo '$xml_body' | grep -q '<fe:Facturae'" "Body contiene <fe:Facturae> root"
-assert "echo '$xml_body' | grep -qE '<ds:Signature|MOCK SIGNATURE'" "Body contiene firma"
+assert "echo '$response' | grep -q '<fe:Facturae'" "Body contiene <fe:Facturae> root"
+assert "echo '$response' | grep -qE '<ds:Signature|MOCK SIGNATURE'" "Body contiene firma"
 
 assert_header "$response" "X-Verifactu-Fingerprint" "Header X-Verifactu-Fingerprint presente"
 assert_header "$response" "X-Chain-Length" "Header X-Chain-Length presente"

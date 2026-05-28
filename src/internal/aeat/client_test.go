@@ -38,10 +38,10 @@ func successSOAP() string {
 	return `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
   <soapenv:Body>
-    <RespuestaRegFactuSistemaFacturacion xmlns="http://www.agenciatributaria.gob.es/AEAT/VERIFACTU/SistemaFacturacion.xsd">
+    <RespuestaRegFactuSistemaFacturacion xmlns="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd">
       <CSV>ABC123DEF456</CSV>
+      <TiempoEsperaEnvio>0000</TiempoEsperaEnvio>
       <EstadoEnvio>Correcto</EstadoEnvio>
-      <DescripcionEstadoEnvio>Registro aceptado correctamente</DescripcionEstadoEnvio>
     </RespuestaRegFactuSistemaFacturacion>
   </soapenv:Body>
 </soapenv:Envelope>`
@@ -51,10 +51,10 @@ func errorSOAP() string {
 	return `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
   <soapenv:Body>
-    <RespuestaRegFactuSistemaFacturacion xmlns="http://www.agenciatributaria.gob.es/AEAT/VERIFACTU/SistemaFacturacion.xsd">
+    <RespuestaRegFactuSistemaFacturacion xmlns="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/RespuestaSuministro.xsd">
       <CSV></CSV>
+      <TiempoEsperaEnvio>0000</TiempoEsperaEnvio>
       <EstadoEnvio>Incorrecto</EstadoEnvio>
-      <DescripcionEstadoEnvio>NIF no encontrado</DescripcionEstadoEnvio>
     </RespuestaRegFactuSistemaFacturacion>
   </soapenv:Body>
 </soapenv:Envelope>`
@@ -65,7 +65,7 @@ func TestClient_SuccessfulSubmission(t *testing.T) {
 	defer srv.Close()
 
 	c := testClient(srv, aeat.EnvTest)
-	result, err := c.Submit(context.Background(), []byte("<invoice/>"), "B12345678")
+	result, err := c.Submit(context.Background(), []byte("<sfLR:RegFactuSistemaFacturacion xmlns:sfLR=\"https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd\">test</sfLR:RegFactuSistemaFacturacion>"))
 	if err != nil {
 		t.Fatalf("Submit error: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestClient_RejectedByAEAT(t *testing.T) {
 	defer srv.Close()
 
 	c := testClient(srv, aeat.EnvTest)
-	result, err := c.Submit(context.Background(), []byte("<invoice/>"), "B12345678")
+	result, err := c.Submit(context.Background(), []byte("<sfLR:RegFactuSistemaFacturacion xmlns:sfLR=\"https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd\">test</sfLR:RegFactuSistemaFacturacion>"))
 	if err != nil {
 		t.Fatalf("unexpected network error: %v", err)
 	}
@@ -114,7 +114,7 @@ func TestClient_HTTPError_Retries(t *testing.T) {
 	c := aeat.NewClient(aeat.EnvTest, nil)
 	c.SetHTTPClient(srv.Client())
 
-	result, err := c.Submit(context.Background(), []byte("<invoice/>"), "B12345678")
+	result, err := c.Submit(context.Background(), []byte("<sfLR:RegFactuSistemaFacturacion xmlns:sfLR=\"https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd\">test</sfLR:RegFactuSistemaFacturacion>"))
 	if err != nil {
 		t.Fatalf("expected success after retries, got: %v", err)
 	}
@@ -142,7 +142,7 @@ func TestClient_ContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	_, err := c.Submit(ctx, []byte("<invoice/>"), "B12345678")
+	_, err := c.Submit(ctx, []byte("<sfLR:RegFactuSistemaFacturacion xmlns:sfLR=\"https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd\">test</sfLR:RegFactuSistemaFacturacion>"))
 	if err == nil {
 		t.Error("expected error for cancelled context")
 	}
@@ -165,7 +165,7 @@ func TestSOAPEnvelope_ContainsCIF(t *testing.T) {
 
 	c := aeat.NewClient(aeat.EnvTest, nil)
 	c.SetHTTPClient(srv.Client())
-	c.Submit(context.Background(), []byte("<invoice/>"), "B12345678")
+	c.Submit(context.Background(), []byte("<sfLR:RegFactuSistemaFacturacion xmlns:sfLR=\"https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/tike/cont/ws/SuministroLR.xsd\">test</sfLR:RegFactuSistemaFacturacion>"))
 
 	if !strings.Contains(string(captured), "soapenv:Envelope") {
 		t.Error("SOAP envelope should contain the soapenv:Envelope element")

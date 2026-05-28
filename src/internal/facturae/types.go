@@ -64,10 +64,12 @@ type TaxIdentification struct {
 	TaxIdentificationNumber string `xml:"TaxIdentificationNumber"`
 }
 
-// LegalEntity represents the legal entity information for a party, including the corporate name and optional registered address.
+// LegalEntity represents the legal entity information for a party, including the corporate name
+// and an address in Spain (AddressInSpain) or abroad (OverseasAddress).
 type LegalEntity struct {
-	CorporateName    string   `xml:"CorporateName"`
-	RegistrationData *Address `xml:"RegistrationData>Address,omitempty"`
+	CorporateName  string   `xml:"CorporateName"`
+	TradeName      string   `xml:"TradeName,omitempty"`
+	AddressInSpain *Address `xml:"AddressInSpain,omitempty"`
 }
 
 // Address holds a complete postal address including street, post code, town, province, and country code.
@@ -75,7 +77,7 @@ type Address struct {
 	Address     string `xml:"Address"`
 	PostCode    string `xml:"PostCode"`
 	Town        string `xml:"Town"`
-	Province    string `xml:"Province,omitempty"`
+	Province    string `xml:"Province"`
 	CountryCode string `xml:"CountryCode"`
 }
 
@@ -130,7 +132,7 @@ type InvoiceTotals struct {
 	TotalGeneralSurcharges      float64 `xml:"TotalGeneralSurcharges,omitempty"`
 	TotalGrossAmountBeforeTaxes float64 `xml:"TotalGrossAmountBeforeTaxes"`
 	TotalTaxOutputs             float64 `xml:"TotalTaxOutputs"`
-	TotalTaxesWithheld          float64 `xml:"TotalTaxesWithheld,omitempty"`
+	TotalTaxesWithheld          float64 `xml:"TotalTaxesWithheld"`
 	InvoiceTotal                float64 `xml:"InvoiceTotal"`
 	TotalOutstandingAmount      float64 `xml:"TotalOutstandingAmount"`
 	TotalExecutableAmount       float64 `xml:"TotalExecutableAmount"`

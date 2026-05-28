@@ -83,6 +83,7 @@ func buildLines(lineas []invoice.Linea, moneda string) ([]InvoiceLine, []TaxOutp
 		TotalGrossAmount:            gross,
 		TotalGrossAmountBeforeTaxes: gross,
 		TotalTaxOutputs:             round2(totalTax),
+		TotalTaxesWithheld:          0,
 		InvoiceTotal:                invoiceTotal,
 		TotalOutstandingAmount:      invoiceTotal,
 		TotalExecutableAmount:       invoiceTotal,

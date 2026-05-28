@@ -57,8 +57,8 @@ echo "--- GET /chain ---"
 chain=$(curl -sf "$base/chain" 2>/dev/null || echo "")
 assert "echo '$chain' | grep -q '\"count\":2'" "Chain.count = 2"
 
-prev_fp=$(echo "$chain" | grep -o '"PreviousFingerprint":"[^"]*"' | head -1)
-assert "[ -z '$prev_fp' ] || echo '$prev_fp' | grep -q '\"\":\"\"' " "Primer registro sin PreviousFingerprint"
+first_prev=$(echo "$chain" | grep -o '"PreviousFingerprint":"[^"]*"' | head -1)
+assert "echo '$first_prev' | grep -q '\"PreviousFingerprint\":\"\"'" "Primer registro sin PreviousFingerprint"
 
 echo ""
 echo "===== Resultados: $pass pasados, $fail fallidos ====="

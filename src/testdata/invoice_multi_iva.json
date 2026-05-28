@@ -19,7 +19,12 @@
   },
   "receptor": {
     "cif": "B99887766",
-    "nombre": "Distribuidor Regional S.L."
+    "nombre": "Distribuidor Regional S.L.",
+    "direccion": "Calle Mayor 789",
+    "cp": "46001",
+    "ciudad": "Valencia",
+    "provincia": "Valencia",
+    "pais": "ESP"
   },
   "lineas": [
     {

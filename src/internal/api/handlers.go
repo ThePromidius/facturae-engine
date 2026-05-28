@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ThePromidius/facturae-engine/src/internal/aeat"
 	"github.com/ThePromidius/facturae-engine/src/internal/facturae"
 	"github.com/ThePromidius/facturae-engine/src/internal/invoice"
 	"github.com/ThePromidius/facturae-engine/src/internal/qr"
@@ -150,9 +151,19 @@ func (s *Server) handleInvoice(w http.ResponseWriter, r *http.Request) {
 					inv.InvoiceHeader.InvoiceNumber)
 				return
 			}
+			sigXML, _ := aeat.ExtractSignature(signed)
+			emisorNombre := f.Parties.SellerParty.LegalEntity.CorporateName
+			sumLR := aeat.BuildSuministroLR(f, inv, rec, emisorCIF,
+				emisorNombre, sigXML, aeat.DefaultConfig())
+			sumLRXML, err := xml.MarshalIndent(sumLR, "", "  ")
+			if err != nil {
+				fmt.Printf("[aeat] Error construyendo SuministroLR: %v\n", err)
+				return
+			}
+			sumFull := append([]byte(xml.Header), sumLRXML...)
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
-			result, err := s.aeat.Submit(ctx, signed, emisorCIF)
+			result, err := s.aeat.Submit(ctx, sumFull)
 			if err != nil {
 				fmt.Printf("[aeat] Error enviando factura %s: %v\n",
 					inv.InvoiceHeader.InvoiceNumber, err)

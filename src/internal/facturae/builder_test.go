@@ -140,7 +140,7 @@ func TestBuild_IssueDate(t *testing.T) {
 
 func TestBuild_SellerAddress(t *testing.T) {
 	f := mustBuild(t, testRequest())
-	addr := f.Parties.SellerParty.LegalEntity.RegistrationData
+	addr := f.Parties.SellerParty.LegalEntity.AddressInSpain
 	if addr == nil {
 		t.Fatal("SellerParty should have address")
 	}

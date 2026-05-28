@@ -43,7 +43,7 @@ func validInvoiceBody(numero string) invoice.Request {
 			Direccion: "Calle Test 1", CP: "28001",
 			Ciudad: "Madrid", Provincia: "Madrid", Pais: "ESP",
 		},
-		Receptor: invoice.Party{CIF: "A87654321", Nombre: "Cliente Test S.A."},
+		Receptor: invoice.Party{CIF: "A87654321", Nombre: "Cliente Test S.A.", Direccion: "Av. Cliente 456", CP: "08001", Ciudad: "Barcelona", Provincia: "Barcelona", Pais: "ESP"},
 		Lineas: []invoice.Linea{
 			{Descripcion: "Servicio", Cantidad: 1, PrecioUnitario: 100, IVATipo: 21},
 		},
