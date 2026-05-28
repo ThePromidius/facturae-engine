@@ -40,6 +40,14 @@ POST /invoice
 
 Converts a JSON invoice into a signed FacturaE XML record with Verifactu chaining.
 
+When AEAT mode is active (``-aeat`` flag), the handler starts an async
+goroutine that: (1) extracts the XAdES ``<ds:Signature>`` from the signed
+FacturaE XML, (2) builds a complete ``SuministroLR`` Verifactu submission
+document (including ``Cabecera``, ``RegistroFactura`` with chain
+fingerprint ``Encadenamiento``, ``Desglose``, and embedded signature), and
+(3) submits it to AEAT via SOAP. The submission result goes to stdout/stderr,
+not the HTTP response.
+
 **Request:**
 
 .. code-block:: http

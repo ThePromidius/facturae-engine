@@ -111,11 +111,56 @@ API Integration tests file: :src:`src/internal/api/integration_test.go` (7 tests
 internal/aeat
 ~~~~~~~~~~~~~
 
-AEAT SOAP client, envelope building, retry logic, XML marshalling.
+AEAT SOAP client, envelope building, retry logic, XML marshalling,
+SuministroLR builder (``build.go``), Verifactu format helpers.
 
-Test files: :src:`src/internal/aeat/aeat_test.go`, ``client_test.go``,
-``integration_test.go`` (12 tests)
+Test files: :src:`src/internal/aeat/aeat_test.go` (30 tests),
+``client_test.go`` (6 tests), ``integration_test.go`` (6 tests)
 
++--------------------------------------------------+----------------------------------------------+
+| Test Function                                    | What it tests                                |
++==================================================+==============================================+
+| ``TestBuildSuministroLR_PrimerRegistro``         | PrimerRegistro=true when chain is empty      |
++--------------------------------------------------+----------------------------------------------+
+| ``TestBuildSuministroLR_RegistroAnterior``       | RegistroAnterior set from chain prev record  |
++--------------------------------------------------+----------------------------------------------+
+| ``TestBuildSuministroLR_ZeroAmounts``            | Zero cuota/importe handled correctly         |
++--------------------------------------------------+----------------------------------------------+
+| ``TestBuildSuministroLR_LargeAmounts``           | Large float64 values, precision preserved    |
++--------------------------------------------------+----------------------------------------------+
+| ``TestBuildSuministroLR_MultipleTaxBrackets``    | 3 tax brackets → 3 Desglose entries          |
++--------------------------------------------------+----------------------------------------------+
+| ``TestBuildSuministroLR_WithSignature``          | ds:Signature embedded in RegistroFactura     |
++--------------------------------------------------+----------------------------------------------+
+| ``TestBuildSuministroLR_WithoutSignature``       | Nil signature → omitted from XML             |
++--------------------------------------------------+----------------------------------------------+
+| ``TestBuildSuministroLR_CustomConfig``           | Custom config overrides defaults             |
++--------------------------------------------------+----------------------------------------------+
+| ``TestFormatAmount``                             | Positive, negative, zero, large, small       |
++--------------------------------------------------+----------------------------------------------+
+| ``TestFormatFechaDDMMYYYY``                      | Valid, already DD-MM, empty, partial         |
++--------------------------------------------------+----------------------------------------------+
+| ``TestMapInvoiceType``                           | FC→F1, FA→F2, AF→R1, unknown→F1, empty→F1   |
++--------------------------------------------------+----------------------------------------------+
+| ``TestXMLMarshalling``                           | SuministroLR XML contains expected nodes     |
++--------------------------------------------------+----------------------------------------------+
+| ``TestClient_SuccessfulSubmission``              | Submit returns CSV, ``IsAccepted()=true``    |
++--------------------------------------------------+----------------------------------------------+
+| ``TestClient_RejectedByAEAT``                    | Estado ``Incorrecto`` → rejected             |
++--------------------------------------------------+----------------------------------------------+
+| ``TestClient_HTTPError_Retries``                 | 3 retries on 503, succeeds on 3rd            |
++--------------------------------------------------+----------------------------------------------+
+| ``TestClient_ContextCancellation``               | Cancelled context returns error              |
++--------------------------------------------------+----------------------------------------------+
+| ``TestSOAPEnvelope_ContainsCIF``                 | Captured request is valid SOAP               |
++--------------------------------------------------+----------------------------------------------+
+| ``TestSubmitResult_IsAccepted``                  | State table: Correcto/AceptadoConErrores     |
++--------------------------------------------------+----------------------------------------------+
+| ``TestEndpoints_BothEnvironmentsDefined``        | Test and prod endpoints are non-empty        |
++--------------------------------------------------+----------------------------------------------+
+| ``TestSOAPResponseParsing``                      | XML unmarshal yields correct CSV             |
++--------------------------------------------------+----------------------------------------------+
+| ``TestClient_Submit_Mock``                       | Full mock AEAT round-trip (integration)      |
 +--------------------------------------------------+----------------------------------------------+
 | Test Function                                    | What it tests                                |
 +--------------------------------------------------+----------------------------------------------+
@@ -180,16 +225,31 @@ Test files: :src:`src/internal/signing/signer_test.go` (11 tests),
 internal/chain
 ~~~~~~~~~~~~~~
 
-Verifactu fingerprint chain: canonicalisation, hashing, store operations.
+Verifactu fingerprint chain: canonicalisation, hashing, store operations,
+multi-tenant chaining, tamper detection, concurrent append, SQL persistence.
 
-Test file: :src:`src/internal/chain/chain_test.go` (2 tests)
+Test file: :src:`src/internal/chain/store_test.go` (22 edge case tests)
 
 +--------------------------------------------------+----------------------------------------------+
 | Test Function                                    | What it tests                                |
++==================================================+==============================================+
+| ``TestChain_EmptyChain``                         | Verify on empty chain returns OK             |
 +--------------------------------------------------+----------------------------------------------+
-| ``TestCanonicalize``                             | Pipe-delimited format matches spec           |
+| ``TestChain_SingleCIF``                          | Single tenant: 3 records link correctly      |
 +--------------------------------------------------+----------------------------------------------+
-| ``TestFingerprint``                              | SHA-256 of known input matches expected      |
+| ``TestChain_TwoCIFs``                            | Multi-tenant: 2 CIFs, 6 records, grouped     |
++--------------------------------------------------+----------------------------------------------+
+| ``TestChain_TamperDetection``                    | Mid-chain record edit → Verify fails         |
++--------------------------------------------------+----------------------------------------------+
+| ``TestChain_GapDetection``                       | Missing record breaks chaining               |
++--------------------------------------------------+----------------------------------------------+
+| ``TestChain_ConcurrentAppend``                   | 5 goroutines, 5 CIFs, no race conditions     |
++--------------------------------------------------+----------------------------------------------+
+| ``TestChain_ExtremeValues``                      | 9 sub-cases: negative amounts, max float64   |
++--------------------------------------------------+----------------------------------------------+
+| ``TestChain_FingerprintDeterminism``             | Same input always produces same fingerprint  |
++--------------------------------------------------+----------------------------------------------+
+| ``TestChain_CanonicalizeConsistency``            | Timestamp format is UTC, stable              |
 +--------------------------------------------------+----------------------------------------------+
 
 internal/facturae
@@ -353,7 +413,7 @@ Available test data in :src:`src/testdata/`:
 Test Scripts
 ------------
 
-Pre-built PowerShell scripts for automated manual testing:
+Pre-built PowerShell scripts for automated manual testing (Windows):
 
 .. code-block:: powershell
 
@@ -366,8 +426,41 @@ Pre-built PowerShell scripts for automated manual testing:
    # Real submission against AEAT PRE (requires FNMT .p12)
    .\scripts\test-aeat-pre.ps1 -P12Path "certificado.p12" -P12Pass "contraseña"
 
-Both ``test-invoice`` and ``test-chain`` run with mock signing — no
-certificate needed. They start the engine, run assertions, and clean up.
+Bash equivalents for Docker/Linux/CI:
+
+.. code-block:: bash
+
+   # All integration scripts in sequence
+   ./scripts/run-all.sh test-invoice.json /tmp/engine.sock 9094
+
+   # Or run individual scripts:
+   ./scripts/test-invoice.sh src/testdata/invoice_simple.json /tmp/engine.sock 9094
+   ./scripts/test-chain.sh /tmp/engine.sock 9094
+   ./scripts/test-chain-verify.sh /tmp/engine.sock 9094
+   ./scripts/test-graceful-shutdown.sh src/testdata/invoice_simple.json /tmp/engine.sock 9094
+
+All ``test-invoice``, ``test-chain``, and ``test-graceful-shutdown`` run
+with mock signing — no certificate needed. They start the engine, run
+assertions, and clean up.
+
+Graceful Shutdown Test
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ``test-graceful-shutdown.sh`` script verifies that the engine survives
+a SIGTERM and preserves the Verifactu chain across restarts:
+
+.. code-block:: bash
+
+   ./scripts/test-graceful-shutdown.sh src/testdata/invoice_simple.json /tmp/engine.sock 9094
+
+It performs these steps:
+
+#.  Starts the engine with SQLite persistence.
+#.  Sends an invoice and records the chain fingerprint.
+#.  Sends SIGTERM to the engine and waits for clean shutdown.
+#.  Restarts the engine with the same database.
+#.  Verifies the chain still contains the first invoice's record.
+#.  Sends a second invoice and verifies the chain grows (length=2).
 
 Chain Verification
 ~~~~~~~~~~~~~~~~~
@@ -408,19 +501,36 @@ Chain Verify Script
 
 .. code-block:: powershell
 
-   # Verify chain integrity with 2 invoices
+   # Verify chain integrity with 2 invoices (PowerShell / Windows)
    .\scripts\test-chain-verify.ps1
 
    # With SQL persistence (chain survives restart)
    .\scripts\test-chain-verify.ps1 -UseSQL
 
-The script runs 5 tests:
+.. code-block:: bash
+
+   # Bash equivalent for Docker/Linux (uses run-all orchestrator)
+   ./scripts/test-chain-verify.sh /tmp/engine.sock 9094
+
+Each script runs 5 tests:
 
 #.  Empty chain reports OK.
 #.  Two invoices POST successfully.
 #.  ``GET /chain/verify`` reports OK with chain_length = 2.
 #.  Manual fingerprint validation (PreviousFingerprint linking).
-#.  With ``-UseSQL``: restarts the server and verifies persistence.
+#.  With ``-UseSQL`` (PowerShell) or SQLite mode (bash): restarts the server
+    and verifies persistence.
+
+The ``run-all.sh`` orchestrator runs all bash scripts in sequence:
+
+.. code-block:: bash
+
+   cd scripts
+   ./run-all.sh src/testdata/invoice_simple.json /tmp/engine.sock 9094
+
+This runs test-invoice, test-chain, test-chain-verify, and test-graceful-shutdown
+in sequence, with a single engine instance (restarted for the graceful-shutdown
+test on a separate port).
 
 AEAT PRE Test
 ~~~~~~~~~~~~~
@@ -459,12 +569,12 @@ reject it. Override it with:
    usa persistencia SQL (``-db sqlite``) para mantener la cadena entre
    sesiones.
 
-AEAT Mock Environment
----------------------
+AEAT Mock Server
+----------------
 
-The engine's **AEAT submission** tests (package ``internal/aeat``) use a
-**mock AEAT server** built with Go's ``httptest`` — they never connect to
-the real AEAT endpoint. The mock:
+The engine's **AEAT submission** tests (package ``internal/aeat``) use an
+**AEAT mock server** — they never connect to the real AEAT endpoint. The
+mock:
 
 *   Listens on a random local port (no network access).
 *   Responds with a valid SOAP ``Correcto`` envelope.

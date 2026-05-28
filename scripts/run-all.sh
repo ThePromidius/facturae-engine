@@ -50,7 +50,7 @@ else total_fail=$((total_fail+1)); echo "  [SUITE] test-invoice FAILED (exit $ec
 
 run_test "test-chain"               "$ROOT/scripts/test-chain.sh"         9091
 run_test "test-chain-verify"        "$ROOT/scripts/test-chain-verify.sh"  9093
-run_test "test-graceful-shutdown"   "$ROOT/scripts/test-graceful-shutdown.sh" 9094
+run_test "test-graceful-shutdown"   "$ROOT/scripts/test-graceful-shutdown.sh" 9094 "sqlite"
 
 echo ""
 echo "========================================="

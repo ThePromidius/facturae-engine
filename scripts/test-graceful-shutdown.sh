@@ -34,7 +34,7 @@ RESP_FILE="$DATA_DIR/resp.json"
 
 run_engine() {
     local socket="$1" engine_flags=""
-    [ -n "${USE_SQL}" ] && engine_flags="-sqlite $DATA_DIR/chain.db"
+    [ -n "${USE_SQL}" ] && engine_flags="-db sqlite -dsn $DATA_DIR/chain.db"
     $ENGINE -socket "$socket" $engine_flags &
     local pid=$!
     echo "$pid" > "$DATA_DIR/engine.pid"
@@ -68,11 +68,9 @@ stop_engine() {
 
 send_invoice() {
     local invoice="$1" socket="$2"
-    local total
-    total=$(jq -r '.factura.total // .Factura.Total // "100.00"' "$invoice")
     curl -sf -X POST "http://$socket/invoice" \
         -H "Content-Type: application/json" \
-        -d @"$invoice" 2>/dev/null | tee "$DATA_DIR/last_response.xml" | head -c 200 > /dev/null
+        -d @"$invoice" -o "$DATA_DIR/last_response.xml" 2>/dev/null
     local ec=$?
     return $ec
 }
